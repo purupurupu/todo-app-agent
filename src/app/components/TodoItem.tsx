@@ -109,7 +109,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
               </p>
             )}
             <div className="flex items-center mt-3 space-x-3">
-              <span className={`text-xs px-2.5 py-1 rounded-full flex items-center ${priorityColor.bg} ${priorityColor.text} border ${priorityColor.border}`}>
+              <span 
+                className={`text-xs px-2.5 py-1 rounded-full flex items-center ${priorityColor.bg} ${priorityColor.text} border ${priorityColor.border}`}
+                data-testid="priority-badge"
+              >
                 {priorityIcon}
                 {todo.priority === 'low' ? '低' : todo.priority === 'medium' ? '中' : '高'}
               </span>
