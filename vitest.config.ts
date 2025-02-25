@@ -1,20 +1,20 @@
-/// <reference types="vitest" />
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import tsconfigPaths from "vite-tsconfig-paths";
 import { resolve } from 'path';
-import react from '@vitejs/plugin-react';
-
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [tsconfigPaths(), react()],
   test: {
-    environment: 'jsdom', // jsdom ではなく node 環境を使用
-    globals: true,
-    setupFiles: './vitest.setup.ts',
+    environment: "jsdom",
+    // setupFiles: ['./vitest.setup.ts'],
     include: ['**/*.test.{ts,tsx}'],
-    exclude: ['e2e/**/*'],
-    coverage: {
+    exclude: [
+      'node_modules/**', 
+      'e2e/**/*'
+    ],    coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', '.next/'],
     },
   },
   resolve: {
@@ -22,4 +22,4 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
-}); 
+});
