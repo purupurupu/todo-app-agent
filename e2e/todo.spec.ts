@@ -8,16 +8,16 @@ test.describe('TODOアプリのテスト', () => {
     await expect(page.getByRole('heading', { name: 'TODOアプリ' })).toBeVisible();
     
     // フォームが表示されていることを確認
-    await expect(page.getByPlaceholder('新しいタスクを入力...')).toBeVisible();
-    await expect(page.getByRole('button', { name: '追加' })).toBeVisible();
+    await expect(page.getByPlaceholder('TODOのタイトルを入力')).toBeVisible();
+    await expect(page.getByRole('button', { name: '追加', exact: true })).toBeVisible();
   });
 
   test('タスクを追加できること', async ({ page }) => {
     await page.goto('/');
     
     // タスクを追加
-    await page.getByPlaceholder('新しいタスクを入力...').fill('テストタスク');
-    await page.getByRole('button', { name: '追加' }).click();
+    await page.getByPlaceholder('TODOのタイトルを入力').fill('テストタスク');
+    await page.getByRole('button', { name: '追加', exact: true }).click();
     
     // 追加されたタスクが表示されていることを確認
     await expect(page.getByText('テストタスク')).toBeVisible();
@@ -27,8 +27,8 @@ test.describe('TODOアプリのテスト', () => {
     await page.goto('/');
     
     // タスクを追加
-    await page.getByPlaceholder('新しいタスクを入力...').fill('完了するタスク');
-    await page.getByRole('button', { name: '追加' }).click();
+    await page.getByPlaceholder('TODOのタイトルを入力').fill('完了するタスク');
+    await page.getByRole('button', { name: '追加', exact: true }).click();
     
     // タスクを完了にする
     await page.getByRole('button', { name: 'タスク完了にする' }).first().click();
@@ -41,8 +41,8 @@ test.describe('TODOアプリのテスト', () => {
     await page.goto('/');
     
     // タスクを追加
-    await page.getByPlaceholder('新しいタスクを入力...').fill('削除するタスク');
-    await page.getByRole('button', { name: '追加' }).click();
+    await page.getByPlaceholder('TODOのタイトルを入力').fill('削除するタスク');
+    await page.getByRole('button', { name: '追加', exact: true }).click();
     
     // 追加されたタスクが表示されていることを確認
     await expect(page.getByText('削除するタスク')).toBeVisible();
