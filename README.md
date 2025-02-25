@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 爽快感のあるTODOアプリ
 
-## Getting Started
+Next.jsとTailwind CSSを使用した、市場最高級に爽快感のあるTODOアプリです。
 
-First, run the development server:
+## 機能
+
+- タスクの追加、編集、削除
+- タスクの完了状態の切り替え
+- 優先度の設定（低、中、高）
+- タスクの詳細説明の追加
+- ステータスと優先度によるフィルタリング
+- タスク完了時の紙吹雪エフェクト
+- ローカルストレージを使用したデータの永続化
+- レスポンシブデザイン
+
+## 技術スタック
+
+- [Next.js](https://nextjs.org/) - Reactフレームワーク
+- [TypeScript](https://www.typescriptlang.org/) - 型安全な開発
+- [Tailwind CSS](https://tailwindcss.com/) - ユーティリティファーストのCSSフレームワーク
+- [UUID](https://github.com/uuidjs/uuid) - 一意のIDの生成
+
+## 開発環境のセットアップ
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# リポジトリのクローン
+git clone <repository-url>
+cd todo-app-next
+
+# 依存関係のインストール
+bun install
+
+# 開発サーバーの起動
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで [http://localhost:3000](http://localhost:3000) を開いてアプリケーションを確認できます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## テスト
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+このプロジェクトでは、以下のテストツールを使用することができます：
 
-## Learn More
+### Jestとreact-testing-library
 
-To learn more about Next.js, take a look at the following resources:
+コンポーネントの単体テストとインテグレーションテストに最適です。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# インストール
+bun add -d jest @testing-library/react @testing-library/jest-dom jest-environment-jsdom @types/jest
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# テストの実行
+bun test
+```
 
-## Deploy on Vercel
+### Playwright
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+エンドツーエンドテストに最適です。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# インストール
+bun add -d @playwright/test
+
+# テストの実行
+bun playwright test
+```
+
+## ビルドと本番環境へのデプロイ
+
+```bash
+# 本番用ビルドの作成
+bun run build
+
+# 本番サーバーの起動
+bun run start
+```
+
+## ライセンス
+
+[MIT](LICENSE)
