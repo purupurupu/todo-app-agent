@@ -12,6 +12,8 @@ Next.jsとTailwind CSSを使用した、市場最高級に爽快感のあるTODO
 - タスク完了時の紙吹雪エフェクト
 - ローカルストレージを使用したデータの永続化
 - レスポンシブデザイン
+- モダンでオシャレなUI/UX
+- ダークモード対応
 
 ## 技術スタック
 
@@ -38,15 +40,27 @@ bun run dev
 
 ## テスト
 
-このプロジェクトでは、以下のテストツールを使用することができます：
+このプロジェクトでは、以下のテストツールを使用します：
 
-### Jestとreact-testing-library
+### Vitestとreact-testing-library
 
 コンポーネントの単体テストとインテグレーションテストに最適です。
 
 ```bash
 # インストール
-bun add -d jest @testing-library/react @testing-library/jest-dom jest-environment-jsdom @types/jest
+bun add -d vitest @testing-library/react @testing-library/jest-dom jsdom
+
+# テスト設定ファイルの作成
+echo 'export default {
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: "./vitest.setup.ts",
+  },
+}' > vitest.config.ts
+
+# セットアップファイルの作成
+echo 'import "@testing-library/jest-dom";' > vitest.setup.ts
 
 # テストの実行
 bun test
@@ -59,6 +73,9 @@ bun test
 ```bash
 # インストール
 bun add -d @playwright/test
+
+# Playwrightのセットアップ
+bunx playwright install
 
 # テストの実行
 bun playwright test
