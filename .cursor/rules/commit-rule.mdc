@@ -1,9 +1,12 @@
 ---
-description: 
+description: 実装とテストが完了したらコミットしてください。その際にこのファイルを参照します。
 globs: 
+alwaysApply: false
 ---
 
 # Commit rules 
+
+まず、このファイルを参照したら、「Pull Request作成手順のファイルを確認しました！」と報告してください。
 
 - Git で commit を適切に行なってください。
 - 可能な限り意味のある単位で細かくわけてください。

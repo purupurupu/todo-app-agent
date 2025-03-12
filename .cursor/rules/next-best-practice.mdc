@@ -1,6 +1,7 @@
 ---
 description: 
-globs: 
+globs: *.tsx,*.ts,*.jsx,*.js
+alwaysApply: false
 ---
 
 # Rules for Coding

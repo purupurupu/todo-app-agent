@@ -1,6 +1,7 @@
 ---
-description: 
+description: 機能に関する開発が完了したらプルリクエストを作ってください。その際にこのファイルを参照します。
 globs: 
+alwaysApply: false
 ---
 
 ## pull request作成手順
