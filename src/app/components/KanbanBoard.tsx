@@ -14,9 +14,7 @@ import {
   DragOverEvent
 } from '@dnd-kit/core';
 import { 
-  SortableContext, 
-  sortableKeyboardCoordinates, 
-  verticalListSortingStrategy 
+  sortableKeyboardCoordinates
 } from '@dnd-kit/sortable';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanItem } from './KanbanItem';
