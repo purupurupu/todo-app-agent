@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanItem } from './KanbanItem';
-import { Todo } from '../types';
+import { Todo } from '../types/index';
 import { KANBAN_COLUMNS } from '../hooks/useTodos';
 
 interface KanbanBoardProps {
