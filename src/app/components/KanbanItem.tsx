@@ -9,14 +9,12 @@ interface KanbanItemProps {
   todo: Todo;
   onToggleComplete: (id: string) => void;
   onDelete: (id: string) => void;
-  onUpdate: (id: string, data: Partial<Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>>) => void;
 }
 
 export const KanbanItem: React.FC<KanbanItemProps> = ({
   todo,
   onToggleComplete,
-  onDelete,
-  onUpdate
+  onDelete
 }) => {
   const {
     attributes,
