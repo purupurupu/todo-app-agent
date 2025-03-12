@@ -4,7 +4,7 @@ import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { KanbanItem } from './KanbanItem';
-import { Todo, KanbanColumn as KanbanColumnType } from '../types';
+import { Todo, KanbanColumn as KanbanColumnType } from '../types/index';
 
 interface KanbanColumnProps {
   column: KanbanColumnType;
