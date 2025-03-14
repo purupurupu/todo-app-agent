@@ -1,6 +1,7 @@
 ---
-description: 
+description: これはプルリクエストのテンプレートです。プルリクエストの作成が必要なときに参照してください。
 globs: 
+alwaysApply: false
 ---
 
 ## 概要
