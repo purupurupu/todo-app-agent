@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Todo, TodoFormData, KanbanColumn } from '../types';
-import { v4 as uuidv4 } from 'uuid';
 
 // カンバンボードの列定義
 export const KANBAN_COLUMNS: KanbanColumn[] = [
@@ -33,148 +32,223 @@ export const KANBAN_COLUMNS: KanbanColumn[] = [
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ローカルストレージからTODOを読み込む
-  useEffect(() => {
-    const loadTodos = () => {
-      try {
-        const savedTodos = localStorage.getItem('todos');
-        if (savedTodos) {
-          const parsedTodos = JSON.parse(savedTodos);
-          // 日付文字列をDateオブジェクトに変換
-          const formattedTodos = parsedTodos.map((todo: Omit<Todo, 'createdAt' | 'updatedAt'> & { createdAt: string; updatedAt: string }) => ({
-            ...todo,
-            createdAt: new Date(todo.createdAt),
-            updatedAt: new Date(todo.updatedAt),
-            // 古いデータにステータスがない場合はデフォルト値を設定
-            status: todo.status || (todo.completed ? 'done' : 'todo'),
-          }));
-          setTodos(formattedTodos);
-        }
-      } catch (error) {
-        console.error('TODOの読み込みに失敗しました:', error);
-      } finally {
-        setIsLoading(false);
+  // APIからTODOを読み込む
+  const fetchTodos = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/todos');
+      if (!response.ok) {
+        throw new Error('TODOの取得に失敗しました');
       }
-    };
+      const data = await response.json();
+      // 日付文字列をDateオブジェクトに変換
+      const formattedTodos = data.todos.map((todo: Omit<Todo, 'createdAt' | 'updatedAt'> & { createdAt: string; updatedAt: string }) => ({
+        ...todo,
+        createdAt: new Date(todo.createdAt),
+        updatedAt: new Date(todo.updatedAt),
+      }));
+      setTodos(formattedTodos);
+    } catch (error) {
+      console.error('TODOの読み込みに失敗しました:', error);
+      setError(error instanceof Error ? error.message : '不明なエラーが発生しました');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    loadTodos();
+  // 初回読み込み
+  useEffect(() => {
+    fetchTodos();
   }, []);
 
-  // TODOの変更をローカルストレージに保存
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem('todos', JSON.stringify(todos));
-    }
-  }, [todos, isLoading]);
-
   // 新しいTODOを追加
-  const addTodo = (todoData: TodoFormData) => {
-    const now = new Date();
-    const newTodo: Todo = {
-      ...todoData,
-      id: uuidv4(),
-      createdAt: now,
-      updatedAt: now,
-      // ステータスが指定されていない場合はデフォルト値を設定
-      status: todoData.status || 'todo',
-      // 同じステータスの最後に追加するための順序を計算
-      order: getMaxOrderForStatus(todoData.status || 'todo') + 1,
-    };
-    setTodos((prevTodos) => [...prevTodos, newTodo]);
-    return newTodo;
+  const addTodo = async (todoData: TodoFormData) => {
+    try {
+      const response = await fetch('/api/todos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(todoData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('TODOの追加に失敗しました');
+      }
+      
+      const data = await response.json();
+      const newTodo = {
+        ...data.todo,
+        createdAt: new Date(data.todo.createdAt),
+        updatedAt: new Date(data.todo.updatedAt),
+      };
+      
+      setTodos((prevTodos) => [...prevTodos, newTodo]);
+      return newTodo;
+    } catch (error) {
+      console.error('TODOの追加に失敗しました:', error);
+      setError(error instanceof Error ? error.message : '不明なエラーが発生しました');
+      return null;
+    }
   };
 
   // TODOを更新
-  const updateTodo = (id: string, todoData: Partial<TodoFormData>) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id
-          ? { ...todo, ...todoData, updatedAt: new Date() }
-          : todo
-      )
-    );
+  const updateTodo = async (id: string, todoData: Partial<TodoFormData>) => {
+    try {
+      const response = await fetch(`/api/todos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(todoData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('TODOの更新に失敗しました');
+      }
+      
+      const data = await response.json();
+      const updatedTodo = {
+        ...data.todo,
+        createdAt: new Date(data.todo.createdAt),
+        updatedAt: new Date(data.todo.updatedAt),
+      };
+      
+      setTodos((prevTodos) =>
+        prevTodos.map((todo) =>
+          todo.id === id ? updatedTodo : todo
+        )
+      );
+    } catch (error) {
+      console.error('TODOの更新に失敗しました:', error);
+      setError(error instanceof Error ? error.message : '不明なエラーが発生しました');
+    }
   };
 
   // TODOを削除
-  const deleteTodo = (id: string) => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+  const deleteTodo = async (id: string) => {
+    try {
+      const response = await fetch(`/api/todos/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('TODOの削除に失敗しました');
+      }
+      
+      setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+    } catch (error) {
+      console.error('TODOの削除に失敗しました:', error);
+      setError(error instanceof Error ? error.message : '不明なエラーが発生しました');
+    }
   };
 
   // 完了状態を切り替え
-  const toggleComplete = (id: string) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) => {
-        if (todo.id === id) {
-          const completed = !todo.completed;
-          // 完了状態に応じてステータスも更新
-          const status = completed ? 'done' : todo.status === 'done' ? 'todo' : todo.status;
-          return { 
-            ...todo, 
-            completed, 
-            status,
-            updatedAt: new Date() 
-          };
-        }
-        return todo;
-      })
-    );
+  const toggleComplete = async (id: string) => {
+    const todo = todos.find((todo) => todo.id === id);
+    if (!todo) return;
+    
+    const completed = !todo.completed;
+    // 完了状態に応じてステータスも更新
+    const status = completed ? 'done' : todo.status === 'done' ? 'todo' : todo.status;
+    
+    await updateTodo(id, { completed, status });
   };
 
   // タスクのステータスを変更
-  const changeStatus = (id: string, newStatus: Todo['status']) => {
-    setTodos((prevTodos) => {
-      const updatedTodos = prevTodos.map((todo) => {
-        if (todo.id === id) {
-          // 完了ステータスに移動した場合は完了フラグも更新
-          const completed = newStatus === 'done';
-          return { 
-            ...todo, 
-            status: newStatus, 
-            completed,
-            updatedAt: new Date(),
-            // 新しいステータスの最後に追加するための順序を計算
-            order: getMaxOrderForStatus(newStatus) + 1,
-          };
-        }
-        return todo;
-      });
-      return updatedTodos;
+  const changeStatus = async (id: string, newStatus: Todo['status']) => {
+    const todo = todos.find((todo) => todo.id === id);
+    if (!todo) return;
+    
+    // 完了ステータスに移動した場合は完了フラグも更新
+    const completed = newStatus === 'done';
+    
+    await updateTodo(id, { 
+      status: newStatus, 
+      completed,
+      // 新しいステータスの最後に追加するための順序を計算
+      order: getMaxOrderForStatus(newStatus) + 1,
     });
   };
 
-  // タスクの順序を変更（ドラッグ＆ドロップ）
-  const moveTodo = (id: string, newStatus: Todo['status'], newIndex: number) => {
-    setTodos((prevTodos) => {
-      // 移動するタスクを取得
-      const todoToMove = prevTodos.find((todo) => todo.id === id);
-      if (!todoToMove) return prevTodos;
-
-      // 移動先のステータスのタスクを取得し、順序でソート
-      const statusTodos = prevTodos
-        .filter((todo) => todo.status === newStatus && todo.id !== id)
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
-
-      // 新しい順序を計算
-      let newOrder = 0;
-      if (newIndex === 0) {
-        // 先頭に移動する場合
-        newOrder = statusTodos.length > 0 ? (statusTodos[0].order || 0) - 1 : 0;
-      } else if (newIndex >= statusTodos.length) {
-        // 末尾に移動する場合
-        newOrder = statusTodos.length > 0 ? (statusTodos[statusTodos.length - 1].order || 0) + 1 : 0;
-      } else {
-        // 中間に移動する場合
-        const prevOrder = statusTodos[newIndex - 1].order || 0;
-        const nextOrder = statusTodos[newIndex].order || 0;
-        newOrder = (prevOrder + nextOrder) / 2;
+  // 複数のタスクを一括更新（ドラッグ＆ドロップ後など）
+  const batchUpdateTodos = async (updatedTodos: { id: string; status: Todo['status']; order?: number }[]) => {
+    try {
+      const response = await fetch('/api/todos/batch-update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ todos: updatedTodos }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('TODOの一括更新に失敗しました');
       }
+      
+      const data = await response.json();
+      const updatedTodoList = data.todos.map((todo: Omit<Todo, 'createdAt' | 'updatedAt'> & { createdAt: string; updatedAt: string }) => ({
+        ...todo,
+        createdAt: new Date(todo.createdAt),
+        updatedAt: new Date(todo.updatedAt),
+      }));
+      
+      // 更新されたTODOをステートに反映
+      setTodos((prevTodos) => {
+        const todoMap = new Map<string, Todo>(updatedTodoList.map((todo: Omit<Todo, 'createdAt' | 'updatedAt'> & { createdAt: Date; updatedAt: Date }) => [todo.id, todo as Todo]));
+        return prevTodos.map((todo) => todoMap.get(todo.id) || todo);
+      });
+    } catch (error) {
+      console.error('TODOの一括更新に失敗しました:', error);
+      setError(error instanceof Error ? error.message : '不明なエラーが発生しました');
+    }
+  };
 
-      // タスクを更新
-      return prevTodos.map((todo) => {
+  // タスクの順序を変更（ドラッグ＆ドロップ）
+  const moveTodo = async (id: string, newStatus: Todo['status'], newIndex: number) => {
+    // 移動するタスクを取得
+    const todoToMove = todos.find((todo) => todo.id === id);
+    if (!todoToMove) return;
+
+    // 移動先のステータスのタスクを取得し、順序でソート
+    const statusTodos = todos
+      .filter((todo) => todo.status === newStatus && todo.id !== id)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    // 新しい順序を計算
+    let newOrder = 0;
+    if (newIndex === 0) {
+      // 先頭に移動する場合
+      newOrder = statusTodos.length > 0 ? (statusTodos[0].order || 0) - 1 : 0;
+    } else if (newIndex >= statusTodos.length) {
+      // 末尾に移動する場合
+      newOrder = statusTodos.length > 0 ? (statusTodos[statusTodos.length - 1].order || 0) + 1 : 0;
+    } else {
+      // 中間に移動する場合
+      const prevOrder = statusTodos[newIndex - 1].order || 0;
+      const nextOrder = statusTodos[newIndex].order || 0;
+      newOrder = (prevOrder + nextOrder) / 2;
+    }
+
+    // 完了ステータスに移動した場合は完了フラグも更新
+    const completed = newStatus === 'done';
+    
+    // 一括更新APIを使用して更新
+    await batchUpdateTodos([
+      { 
+        id, 
+        status: newStatus, 
+        order: newOrder 
+      }
+    ]);
+    
+    // ローカルステートも更新（APIレスポンスを待たずに即時反映）
+    setTodos((prevTodos) => 
+      prevTodos.map((todo) => {
         if (todo.id === id) {
-          // 完了ステータスに移動した場合は完了フラグも更新
-          const completed = newStatus === 'done';
           return {
             ...todo,
             status: newStatus,
@@ -184,8 +258,8 @@ export const useTodos = () => {
           };
         }
         return todo;
-      });
-    });
+      })
+    );
   };
 
   // 特定のステータスの最大順序を取得
@@ -215,12 +289,15 @@ export const useTodos = () => {
   return {
     todos,
     isLoading,
+    error,
+    fetchTodos,
     addTodo,
     updateTodo,
     deleteTodo,
     toggleComplete,
     changeStatus,
     moveTodo,
+    batchUpdateTodos,
     getTodosByStatus,
     getTodosByPriority,
     getTodosByCompletion,
