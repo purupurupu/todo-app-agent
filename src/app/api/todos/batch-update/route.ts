@@ -74,10 +74,13 @@ export async function PUT(request: Request) {
     // トランザクションを使用して一括更新
     const result = await prisma.$transaction(
       todos.map(todo => {
-        // 型アサーションを使用してリンターエラーを回避
-        const data = {
+        // Todoモデルの更新に適した型を使用
+        const data: {
+          status: string;
+          order?: number | null;
+        } = {
           status: todo.status
-        } as any;
+        };
         
         if (todo.order !== undefined) {
           data.order = todo.order;
