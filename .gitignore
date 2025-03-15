@@ -44,4 +44,4 @@ next-env.d.ts
 test-results
 
 # For Cursor
-pr-body.txt
+pr_body.txt
