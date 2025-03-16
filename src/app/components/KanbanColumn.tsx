@@ -21,14 +21,21 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   onDelete,
   onUpdate
 }) => {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: column.id,
+    data: {
+      type: 'column',
+      status: column.status
+    }
   });
+
+  // ドロップ中のハイライトスタイル
+  const dropStyle = isOver ? 'ring-4 ring-inset ring-indigo-500 dark:ring-indigo-400 bg-opacity-70 dark:bg-opacity-70 shadow-lg' : '';
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col h-full min-h-[500px] rounded-lg shadow-md ${column.color} p-4`}
+      className={`flex flex-col h-full min-h-[500px] rounded-lg shadow-md ${column.color} p-4 transition-all duration-200 ${dropStyle}`}
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-bold text-lg">{column.title}</h3>
@@ -44,8 +51,8 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         >
           <div className="space-y-3">
             {todos.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400 italic">
-                タスクがありません
+              <div className="text-center py-16 text-gray-500 dark:text-gray-400 italic min-h-[200px] flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                <p>タスクをここにドロップ</p>
               </div>
             ) : (
               todos.map(todo => (

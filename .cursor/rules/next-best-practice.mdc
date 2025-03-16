@@ -1,5 +1,5 @@
 ---
-description: 作業開始時に最初に参照するファイルです。
+description: 作業開始時に最初に参照するファイルです。git pu
 globs: *.tsx,*.ts,*.jsx,*.js
 alwaysApply: false
 ---
