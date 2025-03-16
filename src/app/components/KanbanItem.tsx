@@ -25,12 +25,19 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({
     transform,
     transition,
     isDragging
-  } = useSortable({ id: todo.id });
+  } = useSortable({ 
+    id: todo.id,
+    data: {
+      type: 'task',
+      todo
+    }
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 999 : 'auto',
   };
 
   // 優先度に応じたスタイル
@@ -48,12 +55,15 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({
       {...listeners}
       className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 cursor-grab ${
         priorityStyles[todo.priority]
-      } ${todo.completed ? 'opacity-70' : ''}`}
+      } ${todo.completed ? 'opacity-70' : ''} ${isDragging ? 'shadow-lg' : ''}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-3">
           <button
-            onClick={() => onToggleComplete(todo.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleComplete(todo.id);
+            }}
             className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full border-2 ${
               todo.completed
                 ? 'bg-green-500 border-green-500'
@@ -95,7 +105,10 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({
         
         <div className="flex space-x-1">
           <button
-            onClick={() => onDelete(todo.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(todo.id);
+            }}
             className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 focus:outline-none"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

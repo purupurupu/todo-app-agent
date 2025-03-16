@@ -3,15 +3,16 @@
 import React, { useState } from 'react';
 import { 
   DndContext, 
-  DragOverlay, 
-  closestCorners, 
+  DragOverlay,
+  closestCenter,
   KeyboardSensor, 
   PointerSensor, 
   useSensor, 
   useSensors,
   DragStartEvent,
   DragEndEvent,
-  DragOverEvent
+  DragOverEvent,
+  UniqueIdentifier
 } from '@dnd-kit/core';
 import { 
   sortableKeyboardCoordinates
@@ -40,7 +41,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onDelete,
   onUpdate
 }) => {
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   
   // ドラッグ中のアイテム
   const activeTodo = activeId ? todos.find(todo => todo.id === activeId) : null;
@@ -60,14 +61,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   // ドラッグ開始時の処理
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    setActiveId(active.id as string);
+    setActiveId(active.id);
   };
 
   // ドラッグ中の処理
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     
-    if (!over) return;
+    if (!over || !active) return;
     
     const activeId = active.id as string;
     const overId = over.id as string;
@@ -75,30 +76,21 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     // 同じアイテムの場合は何もしない
     if (activeId === overId) return;
     
-    // アクティブなアイテムとオーバーしているアイテムを取得
+    // アクティブなアイテムを取得
     const activeTodo = todos.find(todo => todo.id === activeId);
-    const overTodo = todos.find(todo => todo.id === overId);
+    if (!activeTodo) return;
     
-    // 列へのドロップの場合
-    if (!overTodo && KANBAN_COLUMNS.some(col => col.id === overId)) {
-      const newStatus = overId as Todo['status'];
-      if (activeTodo && activeTodo.status !== newStatus) {
-        onChangeStatus(activeId, newStatus);
-      }
+    // ドロップ先のデータ
+    const overData = over.data.current;
+    
+    // 列へのドロップの場合 - ドラッグ中は何もしない
+    if (overData?.type === 'column') {
       return;
     }
     
-    // アイテム間のドラッグの場合
-    if (activeTodo && overTodo) {
-      // 異なる列間のドラッグの場合
-      if (activeTodo.status !== overTodo.status) {
-        const statusTodos = todos
-          .filter(todo => todo.status === overTodo.status)
-          .sort((a, b) => (a.order || 0) - (b.order || 0));
-        
-        const overIndex = statusTodos.findIndex(todo => todo.id === overId);
-        onMoveTodo(activeId, overTodo.status, overIndex);
-      }
+    // アイテム間のドラッグの場合 - ドラッグ中は何もしない
+    if (overData?.type === 'task') {
+      return;
     }
   };
 
@@ -120,31 +112,46 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       return;
     }
     
-    // アクティブなアイテムとオーバーしているアイテムを取得
+    // アクティブなアイテムを取得
     const activeTodo = todos.find(todo => todo.id === activeId);
-    const overTodo = todos.find(todo => todo.id === overId);
-    
-    // 列へのドロップの場合
-    if (!overTodo && KANBAN_COLUMNS.some(col => col.id === overId)) {
-      const newStatus = overId as Todo['status'];
-      if (activeTodo && activeTodo.status !== newStatus) {
-        onChangeStatus(activeId, newStatus);
-      }
+    if (!activeTodo) {
       setActiveId(null);
       return;
     }
     
-    // 同じ列内でのドラッグの場合
-    if (activeTodo && overTodo && activeTodo.status === overTodo.status) {
-      const statusTodos = todos
-        .filter(todo => todo.status === activeTodo.status)
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    // ドロップ先のデータ
+    const overData = over.data.current;
+    
+    // 列へのドロップの場合
+    if (overData?.type === 'column') {
+      const newStatus = overData.status as Todo['status'];
+      if (activeTodo.status !== newStatus) {
+        // ステータス変更を適用
+        onChangeStatus(activeId, newStatus);
+      }
+    } 
+    // アイテム間のドラッグの場合
+    else if (overData?.type === 'task') {
+      const overTodo = todos.find(todo => todo.id === overId);
+      if (!overTodo) {
+        setActiveId(null);
+        return;
+      }
       
-      const activeIndex = statusTodos.findIndex(todo => todo.id === activeId);
-      const overIndex = statusTodos.findIndex(todo => todo.id === overId);
-      
-      if (activeIndex !== overIndex) {
-        onMoveTodo(activeId, activeTodo.status, overIndex);
+      // 同じ列内でのドラッグの場合
+      if (activeTodo.status === overTodo.status) {
+        const statusTodos = getTodosByStatus(activeTodo.status);
+        const activeIndex = statusTodos.findIndex(todo => todo.id === activeId);
+        const overIndex = statusTodos.findIndex(todo => todo.id === overId);
+        
+        if (activeIndex !== overIndex) {
+          onMoveTodo(activeId, activeTodo.status, overIndex);
+        }
+      } else {
+        // 異なる列間のドラッグの場合
+        const statusTodos = getTodosByStatus(overTodo.status);
+        const overIndex = statusTodos.findIndex(todo => todo.id === overId);
+        onMoveTodo(activeId, overTodo.status, overIndex);
       }
     }
     
@@ -173,7 +180,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     <div className="h-full">
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
@@ -193,7 +200,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
         <DragOverlay>
           {activeId && activeTodo ? (
-            <div className="opacity-80">
+            <div className="opacity-80 transform scale-105">
               <KanbanItem
                 todo={activeTodo}
                 onToggleComplete={onToggleComplete}
