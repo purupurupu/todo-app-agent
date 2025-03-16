@@ -68,8 +68,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     <div 
       className={`p-5 mb-4 rounded-xl shadow-md transition-all duration-300 transform hover:scale-[1.01] hover:shadow-lg 
         ${todo.completed 
-          ? 'bg-gray-50/80 backdrop-blur-sm border border-gray-100' 
-          : 'bg-white/90 backdrop-blur-sm border border-gray-100'}`}
+          ? 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700' 
+          : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-4 flex-1">
@@ -78,7 +78,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
             className={`mt-1 w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
               todo.completed
                 ? 'bg-gradient-to-r from-green-400 to-emerald-500 border-transparent text-white shadow-md'
-                : `border-gray-300 hover:border-green-400 hover:shadow-sm ${priorityColor.border}`
+                : `border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-400 hover:shadow-sm ${priorityColor.border}`
             }`}
             aria-label={todo.completed ? 'タスク未完了に戻す' : 'タスク完了にする'}
           >
@@ -100,11 +100,11 @@ export const TodoItem: React.FC<TodoItemProps> = ({
             )}
           </button>
           <div className="flex-1">
-            <h3 className={`text-lg font-medium ${todo.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+            <h3 className={`text-lg font-medium ${todo.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
               {todo.title}
             </h3>
             {todo.description && (
-              <p className={`mt-2 text-sm ${todo.completed ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`mt-2 text-sm ${todo.completed ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-300'}`}>
                 {todo.description}
               </p>
             )}
@@ -116,7 +116,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 {priorityIcon}
                 {todo.priority === 'low' ? '低' : todo.priority === 'medium' ? '中' : '高'}
               </span>
-              <span className="text-xs text-gray-500 flex items-center">
+              <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -128,7 +128,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         <div className="flex space-x-2 ml-3">
           <button
             onClick={() => onEdit(todo.id)}
-            className="p-1.5 text-gray-500 hover:text-indigo-600 transition-colors duration-200 rounded-full hover:bg-indigo-50"
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
             aria-label="編集"
           >
             <svg
@@ -148,7 +148,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
           </button>
           <button
             onClick={() => onDelete(todo.id)}
-            className="p-1.5 text-gray-500 hover:text-rose-600 transition-colors duration-200 rounded-full hover:bg-rose-50"
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200 rounded-full hover:bg-rose-50 dark:hover:bg-rose-900/30"
             aria-label="削除"
           >
             <svg
