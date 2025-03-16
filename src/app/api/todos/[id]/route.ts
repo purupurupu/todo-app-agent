@@ -124,8 +124,10 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = params.id;
-    const body = await request.json();
+    const [body, id] = await Promise.all([
+      request.json(),
+      Promise.resolve(params.id)
+    ]);
     
     // Todoの存在確認
     const existingTodo = await prisma.todo.findUnique({
