@@ -117,19 +117,32 @@ export const useTodos = () => {
         updatedAt: new Date(data.todo.updatedAt),
       };
       
+      // 注意: オプティミスティックUIを実装している関数からは、
+      // すでにローカルの状態が更新されているため、ここでの更新は
+      // APIからの最新データで上書きするだけになります
       setTodos((prevTodos) =>
         prevTodos.map((todo) =>
           todo.id === id ? updatedTodo : todo
         )
       );
+      
+      return updatedTodo;
     } catch (error) {
       console.error('TODOの更新に失敗しました:', error);
       setError(error instanceof Error ? error.message : '不明なエラーが発生しました');
+      throw error; // エラーを再スローして呼び出し元でキャッチできるようにする
     }
   };
 
   // TODOを削除
   const deleteTodo = async (id: string) => {
+    // 削除前のTODOを保存
+    const todoToDelete = todos.find(todo => todo.id === id);
+    if (!todoToDelete) return;
+    
+    // オプティミスティックUI: 先にローカルの状態を更新
+    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+    
     try {
       const response = await fetch(`/api/todos/${id}`, {
         method: 'DELETE',
@@ -138,11 +151,15 @@ export const useTodos = () => {
       if (!response.ok) {
         throw new Error('TODOの削除に失敗しました');
       }
-      
-      setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
     } catch (error) {
+      // エラーが発生した場合は元の状態に戻す
       console.error('TODOの削除に失敗しました:', error);
       setError(error instanceof Error ? error.message : '不明なエラーが発生しました');
+      
+      // 削除に失敗した場合は元に戻す
+      if (todoToDelete) {
+        setTodos((prevTodos) => [...prevTodos, todoToDelete]);
+      }
     }
   };
 
@@ -155,7 +172,30 @@ export const useTodos = () => {
     // 完了状態に応じてステータスも更新
     const status = completed ? 'done' : todo.status === 'done' ? 'todo' : todo.status;
     
-    await updateTodo(id, { completed, status });
+    // オプティミスティックUI: 先にローカルの状態を更新
+    setTodos((prevTodos) =>
+      prevTodos.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              completed,
+              status,
+              updatedAt: new Date(),
+            }
+          : t
+      )
+    );
+    
+    // その後APIリクエストを送信
+    try {
+      await updateTodo(id, { completed, status });
+    } catch (error) {
+      // エラーが発生した場合は元の状態に戻す
+      console.error('完了状態の切り替えに失敗しました:', error);
+      setTodos((prevTodos) =>
+        prevTodos.map((t) => (t.id === id ? todo : t))
+      );
+    }
   };
 
   // タスクのステータスを変更
@@ -166,12 +206,38 @@ export const useTodos = () => {
     // 完了ステータスに移動した場合は完了フラグも更新
     const completed = newStatus === 'done';
     
-    await updateTodo(id, { 
-      status: newStatus, 
-      completed,
-      // 新しいステータスの最後に追加するための順序を計算
-      order: getMaxOrderForStatus(newStatus) + 1,
-    });
+    // 新しいステータスの最後に追加するための順序を計算
+    const newOrder = getMaxOrderForStatus(newStatus) + 1;
+    
+    // オプティミスティックUI: 先にローカルの状態を更新
+    setTodos((prevTodos) =>
+      prevTodos.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              status: newStatus,
+              completed,
+              order: newOrder,
+              updatedAt: new Date(),
+            }
+          : t
+      )
+    );
+    
+    // その後APIリクエストを送信
+    try {
+      await updateTodo(id, { 
+        status: newStatus, 
+        completed,
+        order: newOrder,
+      });
+    } catch (error) {
+      // エラーが発生した場合は元の状態に戻す
+      console.error('ステータス変更に失敗しました:', error);
+      setTodos((prevTodos) =>
+        prevTodos.map((t) => (t.id === id ? todo : t))
+      );
+    }
   };
 
   // 複数のタスクを一括更新（ドラッグ＆ドロップ後など）
@@ -236,16 +302,7 @@ export const useTodos = () => {
     // 完了ステータスに移動した場合は完了フラグも更新
     const completed = newStatus === 'done';
     
-    // 一括更新APIを使用して更新
-    await batchUpdateTodos([
-      { 
-        id, 
-        status: newStatus, 
-        order: newOrder 
-      }
-    ]);
-    
-    // ローカルステートも更新（APIレスポンスを待たずに即時反映）
+    // オプティミスティックUI: 先にローカルの状態を更新
     setTodos((prevTodos) => 
       prevTodos.map((todo) => {
         if (todo.id === id) {
@@ -260,6 +317,24 @@ export const useTodos = () => {
         return todo;
       })
     );
+    
+    // その後APIリクエストを送信
+    try {
+      // 一括更新APIを使用して更新
+      await batchUpdateTodos([
+        { 
+          id, 
+          status: newStatus, 
+          order: newOrder 
+        }
+      ]);
+    } catch (error) {
+      // エラーが発生した場合は元の状態に戻す
+      console.error('タスクの移動に失敗しました:', error);
+      setTodos((prevTodos) =>
+        prevTodos.map((t) => (t.id === id ? todoToMove : t))
+      );
+    }
   };
 
   // 特定のステータスの最大順序を取得
