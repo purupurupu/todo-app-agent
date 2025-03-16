@@ -46,7 +46,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     
     const todo = await prisma.todo.findUnique({
       where: { id }
@@ -195,7 +195,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     
     // Todoの存在確認
     const existingTodo = await prisma.todo.findUnique({
