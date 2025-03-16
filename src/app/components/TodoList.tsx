@@ -67,10 +67,10 @@ export const TodoList: React.FC<TodoListProps> = ({
 
   return (
     <div>
-      <div className="mb-8 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-5">
+      <div className="mb-8 bg-white dark:bg-gray-900 rounded-xl shadow-lg p-5 border border-gray-200 dark:border-gray-700">
         <div className="flex flex-wrap gap-4 md:gap-6">
           <div className="relative">
-            <label htmlFor="status-filter" className="block text-xs font-medium text-gray-700 mb-2">
+            <label htmlFor="status-filter" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
               ステータス
             </label>
             <div className="relative">
@@ -78,13 +78,13 @@ export const TodoList: React.FC<TodoListProps> = ({
                 id="status-filter"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value as 'all' | 'active' | 'completed')}
-                className="appearance-none pl-4 pr-10 py-2.5 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 focus:outline-none bg-gray-50 text-gray-800"
+                className="appearance-none pl-4 pr-10 py-2.5 text-sm border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-700 focus:border-indigo-500 dark:focus:border-indigo-500 focus:outline-none bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
               >
                 <option value="all">すべて</option>
                 <option value="active">未完了</option>
                 <option value="completed">完了済み</option>
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
@@ -93,7 +93,7 @@ export const TodoList: React.FC<TodoListProps> = ({
           </div>
           
           <div className="relative">
-            <label htmlFor="priority-filter" className="block text-xs font-medium text-gray-700 mb-2">
+            <label htmlFor="priority-filter" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
               優先度
             </label>
             <div className="relative">
@@ -101,14 +101,14 @@ export const TodoList: React.FC<TodoListProps> = ({
                 id="priority-filter"
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value as 'all' | Todo['priority'])}
-                className="appearance-none pl-4 pr-10 py-2.5 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 focus:outline-none bg-gray-50 text-gray-800"
+                className="appearance-none pl-4 pr-10 py-2.5 text-sm border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-700 focus:border-indigo-500 dark:focus:border-indigo-500 focus:outline-none bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
               >
                 <option value="all">すべて</option>
                 <option value="high">高</option>
                 <option value="medium">中</option>
                 <option value="low">低</option>
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
@@ -117,7 +117,7 @@ export const TodoList: React.FC<TodoListProps> = ({
           </div>
           
           <div className="ml-auto flex items-end">
-            <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">
+            <span className="text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
               {filteredTodos.length} 件表示 / 全 {todos.length} 件
             </span>
           </div>
@@ -125,11 +125,11 @@ export const TodoList: React.FC<TodoListProps> = ({
       </div>
 
       {sortedTodos.length === 0 ? (
-        <div className="text-center py-16 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-100">
-          <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+        <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+          <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-10 w-10 text-gray-400"
+              className="h-10 w-10 text-gray-400 dark:text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -142,8 +142,8 @@ export const TodoList: React.FC<TodoListProps> = ({
               />
             </svg>
           </div>
-          <h3 className="text-xl font-medium text-gray-700 mb-2">タスクがありません</h3>
-          <p className="text-sm text-gray-500 max-w-xs mx-auto">新しいタスクを追加して、効率的に作業を管理しましょう！</p>
+          <h3 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-2">タスクがありません</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto">新しいタスクを追加して、効率的に作業を管理しましょう！</p>
         </div>
       ) : (
         <div className="space-y-2">

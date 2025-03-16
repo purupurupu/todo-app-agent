@@ -19,7 +19,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
     completed: false,
     priority: 'medium',
     description: '',
-    ...initialData,
+    status: 'todo',
   });
 
   const [error, setError] = useState<string>('');
@@ -27,7 +27,11 @@ export const TodoForm: React.FC<TodoFormProps> = ({
 
   useEffect(() => {
     if (initialData) {
-      setFormData((prev) => ({ ...prev, ...initialData }));
+      setFormData((prev) => ({ 
+        ...prev, 
+        ...initialData,
+        status: initialData.status || prev.status
+      }));
       if (initialData.description) {
         setIsExpanded(true);
       }
@@ -57,6 +61,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
         completed: false,
         priority: 'medium',
         description: '',
+        status: 'todo',
       });
       setIsExpanded(false);
     }
@@ -65,13 +70,13 @@ export const TodoForm: React.FC<TodoFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 mb-8 transition-all duration-300 ${
-        isExpanded ? 'border-l-4 border-indigo-500' : ''
+      className={`bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-8 transition-all duration-300 border border-gray-200 dark:border-gray-700 ${
+        isExpanded ? 'border-l-4 border-indigo-500 dark:border-indigo-400' : ''
       }`}
     >
       <div className="mb-5">
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-          タイトル <span className="text-red-500">*</span>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          タイトル <span className="text-red-500 dark:text-red-400">*</span>
         </label>
         <input
           type="text"
@@ -80,18 +85,18 @@ export const TodoForm: React.FC<TodoFormProps> = ({
           value={formData.title}
           onChange={handleChange}
           placeholder="TODOのタイトルを入力"
-          className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200 text-gray-800 bg-gray-50 ${
+          className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200 text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 ${
             error
-              ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
-              : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-200'
+              ? 'border-red-300 dark:border-red-500/50 focus:border-red-500 focus:ring-red-200 dark:focus:ring-red-800'
+              : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-indigo-200 dark:focus:ring-indigo-800'
           }`}
         />
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
       </div>
 
       <div className="flex items-center mb-5">
         <div className="w-1/2 pr-2">
-          <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             優先度
           </label>
           <select
@@ -99,53 +104,30 @@ export const TodoForm: React.FC<TodoFormProps> = ({
             name="priority"
             value={formData.priority}
             onChange={handleChange}
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 focus:outline-none transition-colors duration-200 text-gray-800 bg-gray-50"
+            className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
           >
             <option value="low">低</option>
             <option value="medium">中</option>
             <option value="high">高</option>
           </select>
         </div>
-
-        <div className="w-1/2 pl-2 flex items-end">
+        <div className="w-1/2 pl-2">
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors duration-200 flex items-center"
+            className="w-full mt-8 px-4 py-3 flex items-center justify-center text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-colors duration-200"
           >
             {isExpanded ? (
               <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 15l7-7 7 7"
-                  />
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 </svg>
                 詳細を隠す
               </>
             ) : (
               <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
                 詳細を追加
               </>
@@ -155,19 +137,19 @@ export const TodoForm: React.FC<TodoFormProps> = ({
       </div>
 
       {isExpanded && (
-        <div className="mb-5">
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="mb-5 animate-fadeIn">
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             詳細
           </label>
           <textarea
             id="description"
             name="description"
-            value={formData.description || ''}
+            value={formData.description}
             onChange={handleChange}
-            placeholder="詳細を入力（任意）"
-            rows={3}
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 focus:outline-none transition-colors duration-200 text-gray-800 bg-gray-50"
-          />
+            rows={4}
+            placeholder="詳細な説明を入力（任意）"
+            className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+          ></textarea>
         </div>
       )}
 
@@ -176,14 +158,14 @@ export const TodoForm: React.FC<TodoFormProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors duration-200"
+            className="px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
           >
             キャンセル
           </button>
         )}
         <button
           type="submit"
-          className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          className="px-6 py-3 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-lg shadow-sm hover:shadow transition-all duration-200"
         >
           {isEditing ? '更新' : '追加'}
         </button>
