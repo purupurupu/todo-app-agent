@@ -1,25 +1,11 @@
-'use client';
-
 import React from 'react';
-import { AppLayout } from '../components/AppLayout';
-import { TodoList } from '../components/TodoList';
-import { TodoForm } from '../components/TodoForm';
-import { useTodos } from '../hooks/useTodos';
-import { TodoFormData } from '../types';
+import { AppLayout } from '../components/layout/AppLayout';
+import { TodoListClient } from '../components/todo-list/TodoListClient';
+import { getTodos } from '../actions/todoActions';
 
-export default function ListPage() {
-  const {
-    todos,
-    isLoading,
-    addTodo,
-    updateTodo,
-    deleteTodo,
-    toggleComplete,
-  } = useTodos();
-
-  const handleAddTodo = (data: TodoFormData) => {
-    addTodo(data);
-  };
+export default async function ListPage() {
+  // サーバーサイドでデータを取得
+  const todos = await getTodos();
 
   return (
     <AppLayout>
@@ -31,19 +17,7 @@ export default function ListPage() {
           </p>
         </div>
         
-        <div className="mb-8">
-          <TodoForm onSubmit={handleAddTodo} />
-        </div>
-        
-        <div className="flex-1">
-          <TodoList
-            todos={todos}
-            isLoading={isLoading}
-            onToggleComplete={toggleComplete}
-            onDelete={deleteTodo}
-            onUpdate={updateTodo}
-          />
-        </div>
+        <TodoListClient initialTodos={todos} />
       </div>
     </AppLayout>
   );

@@ -1,20 +1,11 @@
-'use client';
-
 import React from 'react';
-import { AppLayout } from '../components/AppLayout';
-import { KanbanBoard } from '../components/KanbanBoard';
-import { useTodos } from '../hooks/useTodos';
+import { AppLayout } from '../components/layout/AppLayout';
+import { KanbanBoardClient } from '../components/kanban/KanbanBoardClient';
+import { getTodos } from '../actions/todoActions';
 
-export default function KanbanPage() {
-  const {
-    todos,
-    isLoading,
-    updateTodo,
-    deleteTodo,
-    toggleComplete,
-    changeStatus,
-    moveTodo,
-  } = useTodos();
+export default async function KanbanPage() {
+  // サーバーサイドでデータを取得
+  const todos = await getTodos();
 
   return (
     <AppLayout>
@@ -26,17 +17,7 @@ export default function KanbanPage() {
           </p>
         </div>
         
-        <div className="flex-1">
-          <KanbanBoard
-            todos={todos}
-            isLoading={isLoading}
-            onToggleComplete={toggleComplete}
-            onDelete={deleteTodo}
-            onUpdate={updateTodo}
-            onChangeStatus={changeStatus}
-            onMoveTodo={moveTodo}
-          />
-        </div>
+        <KanbanBoardClient initialTodos={todos} />
       </div>
     </AppLayout>
   );
