@@ -5,12 +5,19 @@ export interface Todo {
   createdAt: Date;
   updatedAt: Date;
   priority: 'low' | 'medium' | 'high';
-  description?: string;
+  description: string | null;
   status: 'backlog' | 'todo' | 'in-progress' | 'done';
-  order?: number;
+  order: number | null;
 }
 
-export type TodoFormData = Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>;
+export type TodoFormData = {
+  title: string;
+  completed: boolean;
+  priority: 'low' | 'medium' | 'high';
+  description: string | null;
+  status: 'backlog' | 'todo' | 'in-progress' | 'done';
+  order?: number | null;
+};
 
 export interface KanbanColumn {
   id: string;
