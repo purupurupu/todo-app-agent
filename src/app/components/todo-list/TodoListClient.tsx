@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Todo } from '@/app/types';
 import { TodoList } from './TodoList';
@@ -16,11 +16,12 @@ export const TodoListClient: React.FC<TodoListClientProps> = ({ initialTodos }) 
   const [showForm, setShowForm] = useState(false);
   const searchParams = useSearchParams();
   const selectedId = searchParams.get('id');
-  const { todos, addOptimisticTodo, deleteOptimisticTodo } = useOptimisticTodos(initialTodos);
+  const { todos, optimisticAddTodo, optimisticDeleteTodo } = useOptimisticTodos(initialTodos);
 
+  // この関数は現在使用されていませんが、将来的に使用する可能性があるため残しておきます
   const handleDelete = async (id: string) => {
     // 楽観的UI更新
-    deleteOptimisticTodo(id);
+    optimisticDeleteTodo(id);
     
     // サーバーアクションを呼び出し
     try {
@@ -54,7 +55,7 @@ export const TodoListClient: React.FC<TodoListClientProps> = ({ initialTodos }) 
           <TodoForm 
             onClose={() => setShowForm(false)} 
             onAddTodo={(newTodo) => {
-              addOptimisticTodo(newTodo);
+              optimisticAddTodo(newTodo);
               setShowForm(false);
             }}
           />
@@ -63,7 +64,7 @@ export const TodoListClient: React.FC<TodoListClientProps> = ({ initialTodos }) 
 
       <TodoList 
         todos={todos} 
-        selectedTodoId={selectedId}
+        selectedTodoId={selectedId || ''} 
       />
     </div>
   );

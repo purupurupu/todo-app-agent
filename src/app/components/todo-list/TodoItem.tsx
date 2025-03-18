@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Todo, TodoStatus } from '@/app/types';
-import { updateTodoStatus, deleteTodo } from '@/app/actions/todoActions';
+import { Todo } from '@/app/types';
+import { updateTodo, deleteTodo } from '@/app/actions/todoActions';
 import { TodoForm } from '../shared/TodoForm';
 
 interface TodoItemProps {
@@ -19,11 +19,11 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, isSelected = false }) 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStatus = e.target.value as TodoStatus;
+    const newStatus = e.target.value as Todo['status'];
     setIsUpdatingStatus(true);
     
     try {
-      await updateTodoStatus(todo.id, newStatus);
+      await updateTodo(todo.id, { status: newStatus });
       router.refresh();
     } catch (error) {
       console.error('Failed to update todo status:', error);
@@ -48,21 +48,22 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, isSelected = false }) 
   };
 
   const statusText = {
-    NOT_STARTED: '未着手',
-    IN_PROGRESS: '進行中',
-    COMPLETED: '完了',
+    todo: '未着手',
+    'in-progress': '進行中',
+    done: '完了',
+    backlog: 'バックログ'
   };
 
   const priorityClasses = {
-    HIGH: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-    MEDIUM: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    LOW: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+    high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+    low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
   };
 
   const priorityText = {
-    HIGH: '高',
-    MEDIUM: '中',
-    LOW: '低',
+    high: '高',
+    medium: '中',
+    low: '低',
   };
 
   return (
@@ -106,9 +107,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, isSelected = false }) 
                     disabled={isUpdatingStatus}
                     className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
                   >
-                    <option value="NOT_STARTED">未着手</option>
-                    <option value="IN_PROGRESS">進行中</option>
-                    <option value="COMPLETED">完了</option>
+                    <option value="todo">未着手</option>
+                    <option value="in-progress">進行中</option>
+                    <option value="done">完了</option>
+                    <option value="backlog">バックログ</option>
                   </select>
                   {isUpdatingStatus && (
                     <svg className="w-4 h-4 ml-2 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -117,15 +119,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, isSelected = false }) 
                     </svg>
                   )}
                 </div>
-                
-                {todo.dueDate && (
-                  <div className="flex items-center">
-                    <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">期限:</span>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      {new Date(todo.dueDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
             

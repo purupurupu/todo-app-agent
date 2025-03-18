@@ -15,7 +15,7 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
   const [showForm, setShowForm] = useState(false);
   const searchParams = useSearchParams();
   const selectedId = searchParams.get('id');
-  const { todos, addOptimisticTodo } = useOptimisticTodos(initialTodos);
+  const { todos, optimisticAddTodo } = useOptimisticTodos(initialTodos);
 
   return (
     <div className="space-y-6">
@@ -40,17 +40,14 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
           <TodoForm 
             onClose={() => setShowForm(false)} 
             onAddTodo={(newTodo) => {
-              addOptimisticTodo(newTodo);
+              optimisticAddTodo(newTodo);
               setShowForm(false);
             }}
           />
         </div>
       )}
 
-      <KanbanBoard 
-        todos={todos} 
-        selectedTodoId={selectedId}
-      />
+      <KanbanBoard todos={todos} selectedTodoId={selectedId || ''} />
     </div>
   );
 };

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Todo, TodoFormData, TodoPriority, TodoStatus } from '@/app/types';
+import { Todo, TodoFormData } from '@/app/types';
 import { createTodo, updateTodo } from '@/app/actions/todoActions';
 
 interface TodoFormProps {
@@ -23,9 +23,10 @@ export const TodoForm: React.FC<TodoFormProps> = ({
   const [formData, setFormData] = useState<TodoFormData>({
     title: todo?.title || '',
     description: todo?.description || '',
-    priority: todo?.priority || 'MEDIUM',
-    dueDate: todo?.dueDate ? new Date(todo.dueDate).toISOString().split('T')[0] : '',
-    status: todo?.status || 'NOT_STARTED',
+    priority: todo?.priority || 'medium',
+    status: todo?.status || 'todo',
+    completed: todo?.completed || false,
+    order: todo?.order || null
   });
   const [errors, setErrors] = useState<Partial<Record<keyof TodoFormData, string>>>({});
 
@@ -68,10 +69,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
     try {
       if (todo) {
         // 既存のToDoを更新
-        const updatedTodo = await updateTodo({
-          id: todo.id,
-          ...formData,
-        });
+        const updatedTodo = await updateTodo(todo.id, formData);
         
         if (updatedTodo) {
           if (onUpdateTodo) {
@@ -147,9 +145,9 @@ export const TodoForm: React.FC<TodoFormProps> = ({
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
           >
-            <option value="LOW">低</option>
-            <option value="MEDIUM">中</option>
-            <option value="HIGH">高</option>
+            <option value="low">低</option>
+            <option value="medium">中</option>
+            <option value="high">高</option>
           </select>
         </div>
 
@@ -164,25 +162,12 @@ export const TodoForm: React.FC<TodoFormProps> = ({
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
           >
-            <option value="NOT_STARTED">未着手</option>
-            <option value="IN_PROGRESS">進行中</option>
-            <option value="COMPLETED">完了</option>
+            <option value="todo">未着手</option>
+            <option value="in-progress">進行中</option>
+            <option value="done">完了</option>
+            <option value="backlog">バックログ</option>
           </select>
         </div>
-      </div>
-
-      <div>
-        <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          期限
-        </label>
-        <input
-          type="date"
-          id="dueDate"
-          name="dueDate"
-          value={formData.dueDate || ''}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
-        />
       </div>
 
       <div className="flex justify-end space-x-2">
