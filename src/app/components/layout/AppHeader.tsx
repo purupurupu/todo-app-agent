@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useResponsive } from '../hooks/useResponsive';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface AppHeaderProps {
   onMenuToggle?: () => void;
