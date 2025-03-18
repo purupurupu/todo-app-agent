@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Todo, TodoStatus } from '@/app/types';
-import { updateTodoStatus, deleteTodo } from '@/app/actions/todoActions';
+import { Todo } from '@/app/types';
+import { updateTodo, deleteTodo } from '@/app/actions/todoActions';
 
 interface KanbanItemProps {
   todo: Todo;
@@ -18,7 +18,7 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
 
   // 次のステータスに更新する処理
   const handleMoveToNextStatus = async () => {
-    const statusFlow: TodoStatus[] = ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'];
+    const statusFlow: Todo['status'][] = ['todo', 'in-progress', 'done'];
     const currentIndex = statusFlow.indexOf(todo.status);
     
     // すでに完了状態の場合は何もしない
@@ -28,7 +28,7 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
     setIsUpdating(true);
     
     try {
-      await updateTodoStatus(todo.id, nextStatus);
+      await updateTodo(todo.id, { status: nextStatus });
       router.refresh();
     } catch (error) {
       console.error('Failed to update todo status:', error);
@@ -55,15 +55,15 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
 
   // 優先度に応じたスタイルを定義
   const priorityClasses = {
-    HIGH: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-    MEDIUM: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    LOW: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+    high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+    low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
   };
 
   const priorityText = {
-    HIGH: '高',
-    MEDIUM: '中',
-    LOW: '低',
+    high: '高',
+    medium: '中',
+    low: '低',
   };
 
   return (
@@ -86,15 +86,9 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
         {todo.description || '説明はありません'}
       </p>
-      
-      {todo.dueDate && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          期限: {new Date(todo.dueDate).toLocaleDateString()}
-        </div>
-      )}
 
       <div className="flex justify-between items-center">
-        {todo.status !== 'COMPLETED' ? (
+        {todo.status !== 'done' ? (
           <button
             onClick={handleMoveToNextStatus}
             disabled={isUpdating}
@@ -110,7 +104,7 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
               </svg>
             )}
-            {todo.status === 'NOT_STARTED' ? '進行中へ' : '完了へ'}
+            {todo.status === 'todo' ? '進行中へ' : '完了へ'}
           </button>
         ) : (
           <span className="text-xs text-green-600 dark:text-green-400 font-medium">完了済み</span>

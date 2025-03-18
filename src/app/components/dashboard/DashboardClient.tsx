@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Todo } from '@/app/types';
 import { useOptimisticTodos } from '@/app/hooks/useOptimisticTodos';
 import { TodoForm } from '../shared/TodoForm';
-import { updateTodo, deleteTodo } from '@/app/actions/todoActions';
+import { deleteTodo } from '@/app/actions/todoActions';
 
 type TodoStatus = 'backlog' | 'todo' | 'in-progress' | 'done';
 
@@ -16,21 +16,7 @@ interface DashboardClientProps {
 export const DashboardClient: React.FC<DashboardClientProps> = ({ initialTodos }) => {
   const [showForm, setShowForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState<TodoStatus | 'all'>('all');
-  const { todos, optimisticAddTodo, optimisticUpdateTodo, optimisticDeleteTodo } = useOptimisticTodos(initialTodos);
-
-  const handleStatusChange = async (id: string, newStatus: TodoStatus) => {
-    // 楽観的UIアップデートを実行
-    optimisticUpdateTodo(id, { status: newStatus });
-    
-    // サーバーアクションを呼び出し
-    try {
-      await updateTodo(id, { status: newStatus });
-    } catch (error) {
-      console.error('Failed to update todo status:', error);
-      // エラーが発生した場合は、最適化を元に戻す必要があります
-      // （本番環境では、よりロバストなエラー処理が必要です）
-    }
-  };
+  const { todos, optimisticAddTodo, optimisticDeleteTodo } = useOptimisticTodos(initialTodos);
 
   const handleDelete = async (id: string) => {
     // 楽観的UI更新

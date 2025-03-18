@@ -1,6 +1,6 @@
 import React from 'react';
-import { AppLayout } from './components/AppLayout';
-import { DashboardClient } from './components/DashboardClient';
+import { AppLayout } from './components/layout/AppLayout';
+import { DashboardClient } from './components/dashboard/DashboardClient';
 import { getTodos } from './actions/todoActions';
 
 export default async function Home() {
@@ -17,7 +17,7 @@ export default async function Home() {
           </p>
         </div>
         
-        <DashboardClient todos={todos} />
+        <DashboardClient initialTodos={todos} />
       </div>
     </AppLayout>
   );

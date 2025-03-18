@@ -20,9 +20,9 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   // 優先度でアイテムを並べ替え（高→中→低）
   const sortedTodos = [...todos].sort((a, b) => {
     const priorityOrder: Record<string, number> = {
-      HIGH: 0,
-      MEDIUM: 1,
-      LOW: 2,
+      high: 0,
+      medium: 1,
+      low: 2,
     };
     
     return priorityOrder[a.priority] - priorityOrder[b.priority];

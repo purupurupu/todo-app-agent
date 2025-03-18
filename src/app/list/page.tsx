@@ -1,6 +1,6 @@
 import React from 'react';
-import { AppLayout } from '../components/AppLayout';
-import { TodoListClient } from '../components/TodoListClient';
+import { AppLayout } from '../components/layout/AppLayout';
+import { TodoListClient } from '../components/todo-list/TodoListClient';
 import { getTodos } from '../actions/todoActions';
 
 export default async function ListPage() {

@@ -1,6 +1,6 @@
 import React from 'react';
-import { AppLayout } from '../components/AppLayout';
-import { KanbanBoardClient } from '../components/KanbanBoardClient';
+import { AppLayout } from '../components/layout/AppLayout';
+import { KanbanBoardClient } from '../components/kanban/KanbanBoardClient';
 import { getTodos } from '../actions/todoActions';
 
 export default async function KanbanPage() {

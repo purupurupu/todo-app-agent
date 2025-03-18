@@ -6,7 +6,6 @@ import { Todo } from '@/app/types';
 import { TodoList } from './TodoList';
 import { TodoForm } from '../shared/TodoForm';
 import { useOptimisticTodos } from '@/app/hooks/useOptimisticTodos';
-import { deleteTodo } from '@/app/actions/todoActions';
 
 interface TodoListClientProps {
   initialTodos: Todo[];
@@ -16,21 +15,7 @@ export const TodoListClient: React.FC<TodoListClientProps> = ({ initialTodos }) 
   const [showForm, setShowForm] = useState(false);
   const searchParams = useSearchParams();
   const selectedId = searchParams.get('id');
-  const { todos, optimisticAddTodo, optimisticDeleteTodo } = useOptimisticTodos(initialTodos);
-
-  // この関数は現在使用されていませんが、将来的に使用する可能性があるため残しておきます
-  const handleDelete = async (id: string) => {
-    // 楽観的UI更新
-    optimisticDeleteTodo(id);
-    
-    // サーバーアクションを呼び出し
-    try {
-      await deleteTodo(id);
-    } catch (error) {
-      console.error('Failed to delete todo:', error);
-      // エラー発生時の処理
-    }
-  };
+  const { todos, optimisticAddTodo } = useOptimisticTodos(initialTodos);
 
   return (
     <div className="space-y-6">

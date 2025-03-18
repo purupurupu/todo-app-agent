@@ -47,13 +47,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, isSelected = false }) 
     }
   };
 
-  const statusText = {
-    todo: '未着手',
-    'in-progress': '進行中',
-    done: '完了',
-    backlog: 'バックログ'
-  };
-
   const priorityClasses = {
     high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
     medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
