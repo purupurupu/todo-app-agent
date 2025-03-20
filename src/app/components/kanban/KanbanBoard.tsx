@@ -5,9 +5,10 @@ import { KanbanColumn } from './KanbanColumn';
 interface KanbanBoardProps {
   todos: Todo[];
   selectedTodoId?: string | null;
+  activeId?: string | null;
 }
 
-export const KanbanBoard: React.FC<KanbanBoardProps> = ({ todos, selectedTodoId }) => {
+export const KanbanBoard: React.FC<KanbanBoardProps> = ({ todos, selectedTodoId, activeId }) => {
   // ステータス別のToDo一覧を作成
   const todosByStatus: Record<Todo['status'], Todo[]> = {
     todo: [],
@@ -70,11 +71,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ todos, selectedTodoId 
       {columns.map((column) => (
         <KanbanColumn
           key={column.status}
+          status={column.status}
           title={column.title}
           icon={column.icon}
           color={column.color}
           todos={todosByStatus[column.status]}
           selectedTodoId={selectedTodoId}
+          activeId={activeId}
         />
       ))}
     </div>
