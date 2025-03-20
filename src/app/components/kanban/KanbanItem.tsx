@@ -92,7 +92,7 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
         isSelected
           ? 'border-indigo-500 dark:border-indigo-400'
           : 'border-transparent'
-      } ${isDragging ? 'opacity-50' : ''} cursor-grab hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors`}
+      } ${isDragging ? 'opacity-50' : ''} cursor-grab hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
       style={dragStyle}
       {...attributes}
       {...listeners}
