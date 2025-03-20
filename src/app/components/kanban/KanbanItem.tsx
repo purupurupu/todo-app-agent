@@ -68,12 +68,6 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
         {todo.description || '説明はありません'}
       </p>
-
-      <div className="flex justify-end items-center">
-        {todo.status === 'done' && (
-          <span className="text-xs text-green-600 dark:text-green-400 font-medium">完了済み</span>
-        )}
-      </div>
     </div>
   );
 }; 
