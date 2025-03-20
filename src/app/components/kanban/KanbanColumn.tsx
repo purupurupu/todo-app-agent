@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import { Todo } from '@/app/types';
 import { KanbanItem } from './KanbanItem';
+import { useDroppable } from '@dnd-kit/core';
 
 interface KanbanColumnProps {
   title: string;
@@ -8,6 +11,8 @@ interface KanbanColumnProps {
   color: string;
   todos: Todo[];
   selectedTodoId?: string | null;
+  activeId?: string | null;
+  status: Todo['status'];
 }
 
 export const KanbanColumn: React.FC<KanbanColumnProps> = ({
@@ -16,7 +21,17 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   color,
   todos,
   selectedTodoId,
+  activeId,
+  status,
 }) => {
+  // ドロップ可能な領域として設定
+  const { isOver, setNodeRef } = useDroppable({
+    id: status,
+  });
+
+  // ドラッグオーバー時のスタイルを追加
+  const dropStyle = isOver ? 'bg-gray-100 dark:bg-gray-700 ring-2 ring-inset ring-indigo-500' : '';
+
   // 優先度でアイテムを並べ替え（高→中→低）
   const sortedTodos = [...todos].sort((a, b) => {
     const priorityOrder: Record<string, number> = {
@@ -29,7 +44,10 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   });
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+    <div 
+      ref={setNodeRef}
+      className={`bg-white dark:bg-gray-800 rounded-lg shadow transition-colors duration-200 ${dropStyle}`}
+    >
       <div className={`px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center`}>
         <div className={`inline-flex items-center rounded-full p-1.5 ${color}`}>
           {icon}
@@ -50,6 +68,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
               key={todo.id} 
               todo={todo} 
               isSelected={selectedTodoId === todo.id}
+              isDragging={activeId === todo.id}
             />
           ))
         )}

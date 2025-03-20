@@ -13,7 +13,7 @@ export default async function KanbanPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">カンバンボード</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">
-            ドラッグ＆ドロップでタスクを管理できます
+            タスクをドラッグ＆ドロップで移動できます
           </p>
         </div>
         
