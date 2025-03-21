@@ -5,7 +5,19 @@ import { useSearchParams } from 'next/navigation';
 import { useOptimisticTodos } from '@/app/hooks/useOptimisticTodos';
 import { KanbanBoard } from './KanbanBoard';
 import { TodoForm } from '../shared/TodoForm';
-import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { 
+  DndContext, 
+  DragEndEvent, 
+  DragOverEvent, 
+  DragStartEvent, 
+  PointerSensor, 
+  useSensor, 
+  useSensors,
+  closestCenter
+} from '@dnd-kit/core';
+import { 
+  arrayMove
+} from '@dnd-kit/sortable';
 import { Todo } from '@/app/types';
 import { batchUpdateTodos } from '@/app/actions/todoActions';
 
@@ -17,7 +29,7 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
   const [showForm, setShowForm] = useState(false);
   const searchParams = useSearchParams();
   const selectedId = searchParams.get('id');
-  const { todos, optimisticAddTodo, optimisticChangeStatus } = useOptimisticTodos(initialTodos);
+  const { todos, optimisticAddTodo, optimisticChangeStatus, setTodos } = useOptimisticTodos(initialTodos);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   // ドラッグ操作のために適切なセンサーを設定
@@ -46,12 +58,50 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
     
     // アクティブなTODOを見つける
     const activeTodo = todos.find(todo => todo.id === activeId);
+    
     // オーバーしている要素がカラムの場合（IDが文字列でtodo, in-progress, doneなど）
     const isOverColumn = ['backlog', 'todo', 'in-progress', 'done'].includes(overId);
     
-    if (activeTodo && isOverColumn) {
-      // オプティミスティックに状態を更新
+    if (activeTodo && isOverColumn && activeTodo.status !== overId) {
+      // 別のカラムに移動する場合は、ステータスを変更
       optimisticChangeStatus(activeId, overId as Todo['status']);
+      return;
+    }
+    
+    // 同じカラム内でのドラッグの場合（アイテム間でのドラッグ）
+    if (activeTodo && !isOverColumn && activeId !== overId) {
+      const overTodo = todos.find(todo => todo.id === overId);
+      
+      if (overTodo && activeTodo.status === overTodo.status) {
+        // 同じステータスのアイテム間でのドラッグ
+        setTodos(prevTodos => {
+          // 同じステータスの項目だけフィルタリング
+          const filteredTodos = prevTodos.filter(todo => todo.status === activeTodo.status);
+          
+          // 現在の配列内でのインデックスを検索
+          const activeIndex = filteredTodos.findIndex(todo => todo.id === activeId);
+          const overIndex = filteredTodos.findIndex(todo => todo.id === overId);
+          
+          if (activeIndex !== -1 && overIndex !== -1) {
+            // 配列内で項目を移動
+            const newFilteredTodos = arrayMove(filteredTodos, activeIndex, overIndex);
+            
+            // 順序番号を更新
+            const updatedFilteredTodos = newFilteredTodos.map((todo, index) => ({
+              ...todo,
+              order: index
+            }));
+            
+            // 元の配列から同じステータスの項目を除外し、並び替えた項目を追加
+            return [
+              ...prevTodos.filter(todo => todo.status !== activeTodo.status),
+              ...updatedFilteredTodos
+            ];
+          }
+          
+          return prevTodos;
+        });
+      }
     }
   };
 
@@ -67,19 +117,39 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
     
     // アクティブなTODOを見つける
     const activeTodo = todos.find(todo => todo.id === activeId);
+    
     // オーバーしている要素がカラムの場合
     const isOverColumn = ['backlog', 'todo', 'in-progress', 'done'].includes(overId);
     
-    if (activeTodo && isOverColumn && activeTodo.status !== overId) {
+    if (activeTodo) {
       try {
-        // サーバーに更新を送信
-        await batchUpdateTodos([{
-          id: activeId,
-          status: overId as Todo['status']
-        }]);
+        if (isOverColumn && activeTodo.status !== overId) {
+          // 別のカラムに移動する場合
+          await batchUpdateTodos([{
+            id: activeId,
+            status: overId as Todo['status']
+          }]);
+        } else if (!isOverColumn && activeId !== overId) {
+          // 同じカラム内での順序変更の場合
+          const overTodo = todos.find(todo => todo.id === overId);
+          
+          if (overTodo && activeTodo.status === overTodo.status) {
+            // 同じステータスのアイテムだけを抽出し、順序を更新
+            const sameStatusTodos = todos
+              .filter(todo => todo.status === activeTodo.status)
+              .map((todo, index) => ({
+                id: todo.id,
+                order: index,
+                status: todo.status
+              }));
+            
+            // 一括更新
+            await batchUpdateTodos(sameStatusTodos);
+          }
+        }
       } catch (error) {
-        console.error('Error updating todo status:', error);
-        // エラー処理（UIに表示するなど）
+        console.error('Error updating todos:', error);
+        // エラー処理
       }
     }
   };
@@ -116,6 +186,7 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
 
       <DndContext
         sensors={sensors}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}

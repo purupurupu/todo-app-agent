@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { Todo } from '@/app/types';
-import { useDraggable } from '@dnd-kit/core';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface KanbanItemProps {
   todo: Todo;
@@ -12,8 +13,15 @@ interface KanbanItemProps {
 }
 
 export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false, isDragging = false }) => {
-  // ドラッグ可能に設定
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  // ソート可能なアイテムとして設定
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging
+  } = useSortable({
     id: todo.id,
     data: {
       todo
@@ -21,13 +29,14 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
   });
 
   // ドラッグ中のスタイル
-  const dragStyle = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    zIndex: 999,
-    opacity: 0.8,
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    cursor: 'grabbing'
-  } : undefined;
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isSortableDragging ? 999 : undefined,
+    opacity: isSortableDragging ? 0.8 : undefined,
+    boxShadow: isSortableDragging ? '0 8px 16px rgba(0, 0, 0, 0.1)' : undefined,
+    cursor: isSortableDragging ? 'grabbing' : 'grab'
+  };
 
   // 優先度に応じたスタイルを定義
   const priorityClasses = {
@@ -49,8 +58,8 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
         isSelected
           ? 'border-indigo-500 dark:border-indigo-400'
           : 'border-transparent'
-      } ${isDragging ? 'opacity-50' : ''} cursor-grab hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-      style={dragStyle}
+      } ${isDragging || isSortableDragging ? 'opacity-50' : ''} cursor-grab hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+      style={style}
       {...attributes}
       {...listeners}
     >

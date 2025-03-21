@@ -4,6 +4,7 @@ import React from 'react';
 import { Todo } from '@/app/types';
 import { KanbanItem } from './KanbanItem';
 import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 interface KanbanColumnProps {
   title: string;
@@ -32,8 +33,18 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   // ドラッグオーバー時のスタイルを追加
   const dropStyle = isOver ? 'bg-gray-100 dark:bg-gray-700 ring-2 ring-inset ring-indigo-500' : '';
 
-  // 優先度でアイテムを並べ替え（高→中→低）
+  // トランクアイテムを優先度とorder値でソート
   const sortedTodos = [...todos].sort((a, b) => {
+    // まずorder値でソート（null値は最後に）
+    if (a.order !== null && b.order !== null) {
+      return a.order - b.order;
+    } else if (a.order !== null) {
+      return -1;
+    } else if (b.order !== null) {
+      return 1;
+    }
+    
+    // order値がない場合は優先度でソート
     const priorityOrder: Record<string, number> = {
       high: 0,
       medium: 1,
@@ -42,6 +53,9 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     
     return priorityOrder[a.priority] - priorityOrder[b.priority];
   });
+
+  // ドラッグ&ドロップのためのアイテムIDリスト
+  const todoIds = sortedTodos.map(todo => todo.id);
 
   return (
     <div 
@@ -63,14 +77,16 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
             <p className="text-gray-500 dark:text-gray-400">タスクがありません</p>
           </div>
         ) : (
-          sortedTodos.map((todo) => (
-            <KanbanItem 
-              key={todo.id} 
-              todo={todo} 
-              isSelected={selectedTodoId === todo.id}
-              isDragging={activeId === todo.id}
-            />
-          ))
+          <SortableContext items={todoIds} strategy={verticalListSortingStrategy}>
+            {sortedTodos.map((todo) => (
+              <KanbanItem 
+                key={todo.id} 
+                todo={todo} 
+                isSelected={selectedTodoId === todo.id}
+                isDragging={activeId === todo.id}
+              />
+            ))}
+          </SortableContext>
         )}
       </div>
     </div>
