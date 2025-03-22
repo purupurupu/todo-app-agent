@@ -1,6 +1,6 @@
 ---
 description: 
-globs: 
+globs: .tsx,.ts,.json,jsx,js
 alwaysApply: false
 ---
 # TODO管理アプリケーション - プロジェクト構造と仕様
