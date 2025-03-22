@@ -230,6 +230,29 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
     }
   };
 
+  // CSSスタイルを追加するためのスタイルタグ
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const styleId = 'kanban-drag-overlay-styles';
+    if (!document.getElementById(styleId)) {
+      const styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      styleEl.textContent = `
+        .drag-overlay {
+          width: auto !important;
+          height: auto !important;
+          transform-origin: center center !important;
+          pointer-events: none !important;
+          z-index: 999 !important;
+          opacity: 0.9 !important;
+          box-shadow: 0 16px 24px rgba(0, 0, 0, 0.16), 0 6px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+      `;
+      document.head.appendChild(styleEl);
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -276,13 +299,15 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
       >
         <KanbanBoard todos={todos} selectedTodoId={selectedId || ''} activeId={activeId} />
         
-        {/* ドラッグ中のオーバーレイ表示 */}
-        <DragOverlay adjustScale={true}>
+        {/* ドラッグ中のオーバーレイ表示 - サイズ固定のスタイル適用 */}
+        <DragOverlay adjustScale={false} className="drag-overlay" wrapperElement="div">
           {activeTodo ? (
-            <KanbanItem 
-              todo={activeTodo}
-              isDragging={true}
-            />
+            <div style={{ width: 'auto', height: 'auto', maxWidth: '100%' }}>
+              <KanbanItem 
+                todo={activeTodo}
+                isDragging={true}
+              />
+            </div>
           ) : null}
         </DragOverlay>
       </DndContext>

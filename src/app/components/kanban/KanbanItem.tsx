@@ -25,9 +25,17 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
   } = useSortable({
     id: todo.id,
     data: {
-      todo
+      type: 'todo', // タイプを明示的に設定
+      todo,
+      status: todo.status // ステータス情報も明示的に追加
     },
-    animateLayoutChanges: () => true, // レイアウト変更時のアニメーションを常に有効化
+    animateLayoutChanges: ({ isSorting, wasDragging }) => {
+      // ソート中やドラッグ終了直後はアニメーションを無効化
+      if (isSorting || wasDragging) {
+        return false;
+      }
+      return true;
+    },
     transition: {
       duration: 250, // ミリ秒単位でのトランジション時間
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)' // よりスムーズなイージング関数
@@ -37,9 +45,9 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
   // デバッグ用：ドラッグ状態の変化をログ出力
   useEffect(() => {
     if (isSortableDragging) {
-      console.log(`ドラッグ中: ${todo.id} - ${todo.title}`);
+      console.log(`ドラッグ中: ${todo.id} - ${todo.title} - ${todo.status}`);
     }
-  }, [isSortableDragging, todo.id, todo.title]);
+  }, [isSortableDragging, todo.id, todo.title, todo.status]);
 
   // スタイルキーフレームアニメーションを適用（クライアントサイドのみ）
   useEffect(() => {
@@ -52,6 +60,18 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
           0% { opacity: 0.1; }
           50% { opacity: 0.2; }
           100% { opacity: 0.1; }
+        }
+        
+        /* ドラッグ中のカードのオーバーレイスタイル */
+        .dragging-card {
+          width: auto !important;
+          height: auto !important;
+          max-width: 100% !important;
+          transform-origin: center center !important;
+          box-sizing: border-box !important;
+          max-height: none !important;
+          flex-shrink: 0 !important;
+          flex-grow: 0 !important;
         }
       `;
       document.head.appendChild(styleTag);
@@ -70,6 +90,14 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
     cursor: isSortableDragging ? 'grabbing' : 'grab',
     touchAction: 'none', // タッチデバイスでのドラッグ操作を改善
     willChange: 'transform, opacity', // ブラウザに変更を予告して最適化
+    // ドラッグ中のカードサイズを維持するための追加スタイル
+    ...(isSortableDragging && {
+      width: 'auto',
+      height: 'auto',
+      maxHeight: 'none', // maxHeightを削除して高さが伸びる問題を修正
+      flexShrink: 0,
+      flexGrow: 0,
+    }),
     ...(isDragging && {
       scale: '1.02', // ドラッグ中に少し拡大してフィードバックを強化
     }),
@@ -102,15 +130,18 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
       className={`bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg p-4 mb-3 
         border-l-4 ${statusBorderColors[todo.status]} 
         ${isSelected ? 'ring-2 ring-indigo-500 dark:ring-indigo-400' : ''} 
-        ${isDragging || isSortableDragging ? 'opacity-90 scale-[1.02]' : ''} 
+        ${isDragging || isSortableDragging ? 'opacity-90 scale-[1.02] dragging-card' : ''} 
         cursor-grab 
         hover:bg-gray-50 dark:hover:bg-gray-700 
         transition-all duration-250 ease-out
-        transform hover:-translate-y-1`}
+        transform hover:-translate-y-1
+        ${isSortableDragging ? 'w-auto h-auto' : ''}`}
       style={style}
       {...attributes}
       {...listeners}
       onClick={() => handleTaskClick && handleTaskClick(todo.id)}
+      data-todo-id={todo.id}
+      data-todo-status={todo.status}
     >
       <div className="flex justify-between items-start">
         <h3 className="text-md font-medium text-gray-900 dark:text-white mb-1 break-all">
