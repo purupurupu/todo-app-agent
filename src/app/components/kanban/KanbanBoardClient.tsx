@@ -10,13 +10,16 @@ import {
   DragEndEvent, 
   DragOverEvent, 
   DragStartEvent, 
-  PointerSensor, 
   useSensor, 
   useSensors,
-  closestCenter
+  closestCorners,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor
 } from '@dnd-kit/core';
 import { 
-  arrayMove
+  arrayMove,
+  sortableKeyboardCoordinates
 } from '@dnd-kit/sortable';
 import { Todo } from '@/app/types';
 import { batchUpdateTodos } from '@/app/actions/todoActions';
@@ -32,12 +35,25 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
   const { todos, optimisticAddTodo, optimisticChangeStatus, setTodos } = useOptimisticTodos(initialTodos);
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  // ドラッグ操作のために適切なセンサーを設定
+  // ドラッグ操作のために適切なセンサーを設定 - 複数のセンサーを組み合わせて滑らかな操作を実現
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
+      // マウスセンサーを高速化
       activationConstraint: {
-        distance: 8, // ドラッグを開始するために必要な最小移動距離
+        distance: 3, // ドラッグを開始するために必要な最小移動距離を小さく
+        tolerance: 5, // 動きの許容範囲を広く
       },
+    }),
+    useSensor(TouchSensor, {
+      // タッチセンサーの設定
+      activationConstraint: {
+        delay: 100, // 短いディレイでタッチ操作を開始
+        tolerance: 8, // タッチ操作の許容範囲
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      // キーボード操作もサポート
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
@@ -186,10 +202,22 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
+        measuring={{
+          droppable: {
+            strategy: 'always',
+          },
+        }}
+        autoScroll={{
+          enabled: true,
+          threshold: {
+            x: 0.1,
+            y: 0.2
+          }
+        }}
       >
         <KanbanBoard todos={todos} selectedTodoId={selectedId || ''} activeId={activeId} />
       </DndContext>
