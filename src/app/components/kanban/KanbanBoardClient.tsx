@@ -13,9 +13,13 @@ import {
   useSensor, 
   useSensors,
   closestCorners,
+  pointerWithin,
+  rectIntersection,
   KeyboardSensor,
   MouseSensor,
-  TouchSensor
+  TouchSensor,
+  DragOverlay,
+  CollisionDetection
 } from '@dnd-kit/core';
 import { 
   arrayMove,
@@ -23,6 +27,7 @@ import {
 } from '@dnd-kit/sortable';
 import { Todo } from '@/app/types';
 import { batchUpdateTodos } from '@/app/actions/todoActions';
+import { KanbanItem } from './KanbanItem';
 
 interface KanbanBoardClientProps {
   initialTodos: Todo[];
@@ -34,21 +39,23 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
   const selectedId = searchParams.get('id');
   const { todos, optimisticAddTodo, optimisticChangeStatus, setTodos } = useOptimisticTodos(initialTodos);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeTodo, setActiveTodo] = useState<Todo | null>(null);
 
-  // ドラッグ操作のために適切なセンサーを設定 - 複数のセンサーを組み合わせて滑らかな操作を実現
+  // ドラッグ操作のために適切なセンサーを設定 - より正確に反応するセンサー設定
   const sensors = useSensors(
     useSensor(MouseSensor, {
-      // マウスセンサーを高速化
+      // マウスセンサーの反応性を向上
       activationConstraint: {
-        distance: 3, // ドラッグを開始するために必要な最小移動距離を小さく
-        tolerance: 5, // 動きの許容範囲を広く
+        distance: 3, // ドラッグを開始するために必要な最小移動距離を小さく設定
+        delay: 50, // 短い遅延でドラッグ開始
+        tolerance: 5, // 許容範囲を広めに設定
       },
     }),
     useSensor(TouchSensor, {
-      // タッチセンサーの設定
+      // タッチセンサーの品質を向上
       activationConstraint: {
-        delay: 100, // 短いディレイでタッチ操作を開始
-        tolerance: 8, // タッチ操作の許容範囲
+        delay: 100, // モバイルでの遅延
+        tolerance: 10, // タッチ操作の許容範囲を広く
       },
     }),
     useSensor(KeyboardSensor, {
@@ -57,11 +64,36 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
     })
   );
 
+  // よりロバストな衝突検出の組み合わせ
+  const customCollisionDetection: CollisionDetection = (args) => {
+    // まずアイテムが領域内にあるかチェック（基本的な検出）
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+    
+    // 次に領域の交差をチェック（より詳細な検出）
+    const rectCollisions = rectIntersection(args);
+    if (rectCollisions.length > 0) {
+      return rectCollisions;
+    }
+    
+    // 最後にclosestCornersで最も近い要素を検出（フォールバック）
+    return closestCorners(args);
+  };
+
   // ドラッグ開始時の処理
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    setActiveId(active.id as string);
-    console.log('ドラッグ開始:', active.id);
+    const id = active.id as string;
+    setActiveId(id);
+    
+    // ドラッグ中のアイテムデータを保存
+    const draggedTodo = todos.find(todo => todo.id === id);
+    if (draggedTodo) {
+      setActiveTodo(draggedTodo);
+      console.log('ドラッグ開始:', id, draggedTodo.status);
+    }
   };
 
   // ドラッグ中に他のエリア上に移動した時の処理
@@ -73,10 +105,18 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
     const activeId = active.id as string;
     const overId = over.id as string;
     
-    console.log('ドラッグオーバー:', { activeId, overId });
-    
     // アクティブなTODOを見つける
     const activeTodo = todos.find(todo => todo.id === activeId);
+    
+    if (!activeTodo) return;
+    
+    // ドラッグ中の詳細なデバッグ情報
+    console.log('ドラッグオーバー:', { 
+      activeId, 
+      overId, 
+      activeData: active.data.current,
+      overData: over.data.current
+    });
     
     // オーバーしている要素がカラムの場合（IDが文字列でtodo, in-progress, doneなど）
     const isOverColumn = ['backlog', 'todo', 'in-progress', 'done'].includes(overId);
@@ -129,7 +169,10 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
   // ドラッグ終了時の処理
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    
+    // 状態をリセット
     setActiveId(null);
+    setActiveTodo(null);
     
     if (!over) {
       console.log('ドラッグキャンセル: オーバー要素なし');
@@ -139,46 +182,51 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
     const activeId = active.id as string;
     const overId = over.id as string;
     
-    console.log('ドラッグ終了:', { activeId, overId });
+    console.log('ドラッグ終了:', { 
+      activeId, 
+      overId,
+      activeData: active.data.current,
+      overData: over.data.current
+    });
     
     // アクティブなTODOを見つける
     const activeTodo = todos.find(todo => todo.id === activeId);
     
+    if (!activeTodo) return;
+    
     // オーバーしている要素がカラムの場合
     const isOverColumn = ['backlog', 'todo', 'in-progress', 'done'].includes(overId);
     
-    if (activeTodo) {
-      try {
-        if (isOverColumn && activeTodo.status !== overId) {
-          // 別のカラムに移動する場合
-          console.log(`カラム間移動を確定: ${activeTodo.status} -> ${overId}`);
-          await batchUpdateTodos([{
-            id: activeId,
-            status: overId as Todo['status']
-          }]);
-        } else if (!isOverColumn && activeId !== overId) {
-          // 同じカラム内での順序変更の場合
-          const overTodo = todos.find(todo => todo.id === overId);
+    try {
+      if (isOverColumn && activeTodo.status !== overId) {
+        // 別のカラムに移動する場合
+        console.log(`カラム間移動を確定: ${activeTodo.status} -> ${overId}`);
+        await batchUpdateTodos([{
+          id: activeId,
+          status: overId as Todo['status']
+        }]);
+      } else if (!isOverColumn && activeId !== overId) {
+        // 同じカラム内での順序変更の場合
+        const overTodo = todos.find(todo => todo.id === overId);
+        
+        if (overTodo && activeTodo.status === overTodo.status) {
+          console.log(`同じカラム内の順序変更を確定: ${activeTodo.status}`);
+          // 同じステータスのアイテムだけを抽出し、順序を更新
+          const sameStatusTodos = todos
+            .filter(todo => todo.status === activeTodo.status)
+            .map((todo, index) => ({
+              id: todo.id,
+              order: index,
+              status: todo.status
+            }));
           
-          if (overTodo && activeTodo.status === overTodo.status) {
-            console.log(`同じカラム内の順序変更を確定: ${activeTodo.status}`);
-            // 同じステータスのアイテムだけを抽出し、順序を更新
-            const sameStatusTodos = todos
-              .filter(todo => todo.status === activeTodo.status)
-              .map((todo, index) => ({
-                id: todo.id,
-                order: index,
-                status: todo.status
-              }));
-            
-            // 一括更新
-            await batchUpdateTodos(sameStatusTodos);
-          }
+          // 一括更新
+          await batchUpdateTodos(sameStatusTodos);
         }
-      } catch (error) {
-        console.error('Error updating todos:', error);
-        // エラー処理
       }
+    } catch (error) {
+      console.error('Error updating todos:', error);
+      // エラー処理
     }
   };
 
@@ -214,7 +262,7 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={customCollisionDetection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
@@ -222,11 +270,21 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
           enabled: true,
           threshold: {
             x: 0.1,
-            y: 0.2
+            y: 0.1
           }
         }}
       >
         <KanbanBoard todos={todos} selectedTodoId={selectedId || ''} activeId={activeId} />
+        
+        {/* ドラッグ中のオーバーレイ表示 */}
+        <DragOverlay adjustScale={true}>
+          {activeTodo ? (
+            <KanbanItem 
+              todo={activeTodo}
+              isDragging={true}
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );
