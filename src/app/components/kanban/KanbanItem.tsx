@@ -34,7 +34,7 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
     transition,
     zIndex: isSortableDragging ? 999 : undefined,
     opacity: isSortableDragging ? 0.8 : undefined,
-    boxShadow: isSortableDragging ? '0 8px 16px rgba(0, 0, 0, 0.1)' : undefined,
+    boxShadow: isSortableDragging ? '0 12px 20px rgba(0, 0, 0, 0.15)' : undefined,
     cursor: isSortableDragging ? 'grabbing' : 'grab'
   };
 
@@ -51,21 +51,32 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
     low: '低',
   };
 
+  // ステータスに応じたボーダーカラーを定義
+  const statusBorderColors = {
+    'backlog': 'border-gray-400 dark:border-gray-500',
+    'todo': 'border-blue-400 dark:border-blue-500',
+    'in-progress': 'border-purple-400 dark:border-purple-500',
+    'done': 'border-green-400 dark:border-green-500',
+  };
+
   return (
     <div 
       ref={setNodeRef}
-      className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-3 border-l-4 ${
-        isSelected
-          ? 'border-indigo-500 dark:border-indigo-400'
-          : 'border-transparent'
-      } ${isDragging || isSortableDragging ? 'opacity-50' : ''} cursor-grab hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+      className={`bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg p-4 mb-3 
+        border-l-4 ${statusBorderColors[todo.status]} 
+        ${isSelected ? 'ring-2 ring-indigo-500 dark:ring-indigo-400' : ''} 
+        ${isDragging || isSortableDragging ? 'opacity-60' : ''} 
+        cursor-grab 
+        hover:bg-gray-50 dark:hover:bg-gray-700 
+        transition-all duration-200 ease-in-out
+        transform hover:-translate-y-1`}
       style={style}
       {...attributes}
       {...listeners}
     >
-      <div className="flex justify-between">
+      <div className="flex justify-between items-start">
         <h3 className="text-md font-medium text-gray-900 dark:text-white mb-1 break-all">
-          <Link href={`/kanban?id=${todo.id}`} className="hover:text-indigo-600 dark:hover:text-indigo-400">
+          <Link href={`/kanban?id=${todo.id}`} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
             {todo.title}
           </Link>
         </h3>
@@ -74,7 +85,7 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
         </span>
       </div>
       
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 mb-2 line-clamp-2">
         {todo.description || '説明はありません'}
       </p>
     </div>
