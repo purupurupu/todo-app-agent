@@ -1,0 +1,127 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# TODO管理アプリケーション - プロジェクト構造と仕様
+
+## 概要
+このプロジェクトはNotionライクなインターフェースを持つTODO管理アプリケーションです。Next.js、TypeScript、Prisma、PostgreSQLを使用して構築されています。
+
+## 主要機能
+
+### 1. ダッシュボード
+- タスク概要の可視化
+- ステータス別タスク数の表示
+- 優先度別タスク分布
+
+### 2. TODOリスト（リスト表示）
+- タスクの一覧表示
+- フィルタリング機能
+- ソート機能
+- 新規タスク追加
+- タスクの編集・削除
+
+### 3. カンバンボード
+- ステータス別（未着手・進行中・完了）のタスク管理
+- ドラッグ&ドロップでのタスク移動
+- カード形式でのタスク表示
+
+### 4. タスク詳細
+- タイトル、説明、優先度、期限などの管理
+- ステータス変更
+- メタデータ（作成日時、更新日時）表示
+
+### 5. 設定画面
+- テーマ設定（ライト/ダークモード）
+- 表示カスタマイズ
+
+## 技術仕様
+
+### フロントエンド
+- **フレームワーク**: Next.js 15
+- **言語**: TypeScript
+- **スタイリング**: TailwindCSS
+- **UI/UX**: レスポンシブデザイン、ダークモード対応
+- **状態管理**: React Hooks
+- **ドラッグ&ドロップ**: @dnd-kit
+
+### バックエンド
+- **API**: Next.js API Routes
+- **データベース**: PostgreSQL
+- **ORM**: Prisma
+- **バリデーション**: Zod
+
+### テスト
+- **ユニットテスト**: Vitest
+- **E2Eテスト**: Playwright
+
+### インフラ
+- **開発環境**: Docker Compose
+- **デプロイ**: Vercel (想定)
+
+## データモデル
+
+### Todo
+- `id`: String (UUID) - 主キー
+- `title`: String - タスクのタイトル
+- `completed`: Boolean - 完了フラグ
+- `createdAt`: DateTime - 作成日時
+- `updatedAt`: DateTime - 更新日時
+- `priority`: String - 優先度 (high, medium, low)
+- `description`: String? - 詳細説明（任意）
+- `status`: String - ステータス (todo, in-progress, done)
+- `order`: Int? - 表示順序（任意）
+
+## ディレクトリ構成
+```
+todo-app-next/
+├── .next/               # Next.jsのビルド出力
+├── prisma/              # Prismaスキーマとマイグレーション
+│   ├── migrations/      # データベースマイグレーションファイル
+│   └── schema.prisma    # データモデル定義
+├── public/              # 静的ファイル
+├── src/                 # ソースコード
+│   └── app/             # Next.js App Router
+│       ├── api/         # APIルート
+│       │   └── todos/   # TODOのAPIエンドポイント
+│       ├── actions/     # サーバーアクション
+│       ├── components/  # Reactコンポーネント
+│       │   ├── dashboard/   # ダッシュボード関連コンポーネント
+│       │   ├── kanban/      # カンバンボード関連コンポーネント
+│       │   ├── layout/      # レイアウト関連コンポーネント
+│       │   ├── shared/      # 共通コンポーネント
+│       │   ├── todo/        # Todo関連コンポーネント
+│       │   └── todo-list/   # Todoリスト関連コンポーネント
+│       ├── hooks/       # カスタムReactフック
+│       ├── types/       # TypeScript型定義
+│       ├── kanban/      # カンバンボードページ
+│       ├── list/        # リスト表示ページ
+│       ├── settings/    # 設定ページ
+│       ├── globals.css  # グローバルCSS
+│       ├── layout.tsx   # ルートレイアウト
+│       └── page.tsx     # ホームページ（ダッシュボード）
+├── lib/                 # ユーティリティ関数
+├── scripts/             # スクリプトファイル
+├── e2e/                 # E2Eテスト
+├── .env                 # 環境変数
+├── compose.yml          # Docker Compose設定
+├── package.json         # プロジェクト依存関係
+└── README.md            # プロジェクト説明
+```
+
+## 開発環境セットアップ
+1. リポジトリのクローン
+2. 依存関係のインストール: `pnpm install`
+3. Docker Composeでデータベースを起動: `docker-compose up -d`
+4. データベースマイグレーション: `npx prisma migrate dev`
+5. 開発サーバー起動: `npm run dev`
+
+## テスト実行
+- ユニットテスト: `npm run test`
+- E2Eテスト: `npm run test:e2e`
+
+## 注意事項
+- 本プロジェクトはNext.jsのApp Routerを採用しています
+- データベース接続は環境変数 `DATABASE_URL` で設定します
+- Tailwind CSSを使用したスタイリングを採用しています 
