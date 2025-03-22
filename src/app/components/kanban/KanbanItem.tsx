@@ -1,6 +1,6 @@
 'use client';
 
-import React, { CSSProperties } from 'react';
+import React, { CSSProperties, useEffect } from 'react';
 import Link from 'next/link';
 import { Todo } from '@/app/types';
 import { useSortable } from '@dnd-kit/sortable';
@@ -33,6 +33,30 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)' // よりスムーズなイージング関数
     }
   });
+
+  // デバッグ用：ドラッグ状態の変化をログ出力
+  useEffect(() => {
+    if (isSortableDragging) {
+      console.log(`ドラッグ中: ${todo.id} - ${todo.title}`);
+    }
+  }, [isSortableDragging, todo.id, todo.title]);
+
+  // スタイルキーフレームアニメーションを適用（クライアントサイドのみ）
+  useEffect(() => {
+    // クライアントサイドのみで実行
+    if (typeof window !== 'undefined' && !document.getElementById('kanban-item-styles')) {
+      const styleTag = document.createElement('style');
+      styleTag.id = 'kanban-item-styles';
+      styleTag.textContent = `
+        @keyframes pulse {
+          0% { opacity: 0.1; }
+          50% { opacity: 0.2; }
+          100% { opacity: 0.1; }
+        }
+      `;
+      document.head.appendChild(styleTag);
+    }
+  }, []);
 
   // ドラッグ中のスタイル - より滑らかなトランジションを設定
   const style: CSSProperties = {
@@ -122,20 +146,4 @@ export const KanbanItem: React.FC<KanbanItemProps> = ({ todo, isSelected = false
   );
 
   return item;
-};
-
-// スタイルキーフレームアニメーションを適用するためのスタイルタグ
-const styleTag = document.createElement('style');
-styleTag.textContent = `
-  @keyframes pulse {
-    0% { opacity: 0.1; }
-    50% { opacity: 0.2; }
-    100% { opacity: 0.1; }
-  }
-`;
-
-// スタイルがまだ追加されていない場合のみ追加（クライアントサイドのみ）
-if (typeof window !== 'undefined' && !document.getElementById('kanban-item-styles')) {
-  styleTag.id = 'kanban-item-styles';
-  document.head.appendChild(styleTag);
-} 
+}; 

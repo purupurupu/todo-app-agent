@@ -25,9 +25,14 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   activeId,
   status,
 }) => {
-  // ドロップ可能な領域として設定
-  const { isOver, setNodeRef } = useDroppable({
+  // ドロップ可能な領域として設定 - 改善されたドロップオプション
+  const { isOver, setNodeRef, active } = useDroppable({
     id: status,
+    data: {
+      type: 'column',
+      accepts: ['todo'],
+      status
+    }
   });
 
   // ドラッグオーバー時のスタイルを追加
@@ -67,11 +72,15 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     'done': 'border-green-400 dark:border-green-500',
   };
 
+  // アクティブなドラッグ操作があるかどうか
+  const hasActiveDrag = !!active;
+
   return (
     <div 
       ref={setNodeRef}
       className={`bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg 
-        transition-all duration-200 ${dropStyle} border-t-4 ${statusColors[status]}`}
+        transition-all duration-200 ${dropStyle} border-t-4 ${statusColors[status]}
+        ${hasActiveDrag ? 'min-h-[150px]' : ''}`}
     >
       <div className={`px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center`}>
         <div className={`inline-flex items-center rounded-full p-1.5 ${color}`}>
@@ -87,7 +96,9 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       
       <div className="p-4 overflow-y-auto max-h-[calc(100vh-220px)]">
         {sortedTodos.length === 0 ? (
-          <div className="text-center py-6 px-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+          <div className={`text-center py-6 px-4 border-2 border-dashed 
+            ${isOver ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-300 dark:border-gray-600'} 
+            rounded-lg transition-colors duration-200`}>
             <p className="text-gray-500 dark:text-gray-400">タスクがありません</p>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">タスクをここにドラッグ＆ドロップ</p>
           </div>
@@ -102,6 +113,15 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
               />
             ))}
           </SortableContext>
+        )}
+        
+        {/* ドラッグ中で空の場合のドロップヒント領域を表示 */}
+        {hasActiveDrag && sortedTodos.length > 0 && (
+          <div className={`mt-3 text-center py-4 px-3 border-2 border-dashed 
+            ${isOver ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-300 dark:border-gray-600'} 
+            rounded-lg transition-colors duration-200 opacity-70`}>
+            <p className="text-xs text-gray-500 dark:text-gray-400">タスクをここにドロップ</p>
+          </div>
         )}
       </div>
     </div>

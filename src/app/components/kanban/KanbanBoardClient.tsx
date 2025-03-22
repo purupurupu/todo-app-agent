@@ -61,6 +61,7 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id as string);
+    console.log('ドラッグ開始:', active.id);
   };
 
   // ドラッグ中に他のエリア上に移動した時の処理
@@ -72,6 +73,8 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
     const activeId = active.id as string;
     const overId = over.id as string;
     
+    console.log('ドラッグオーバー:', { activeId, overId });
+    
     // アクティブなTODOを見つける
     const activeTodo = todos.find(todo => todo.id === activeId);
     
@@ -80,6 +83,7 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
     
     if (activeTodo && isOverColumn && activeTodo.status !== overId) {
       // 別のカラムに移動する場合は、ステータスを変更
+      console.log(`カラム移動: ${activeTodo.status} -> ${overId}`);
       optimisticChangeStatus(activeId, overId as Todo['status']);
       return;
     }
@@ -89,6 +93,7 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
       const overTodo = todos.find(todo => todo.id === overId);
       
       if (overTodo && activeTodo.status === overTodo.status) {
+        console.log(`同じカラム内での並べ替え: ${activeTodo.status}`);
         // 同じステータスのアイテム間でのドラッグ
         setTodos(prevTodos => {
           // 同じステータスの項目だけフィルタリング
@@ -126,10 +131,15 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
     const { active, over } = event;
     setActiveId(null);
     
-    if (!over) return;
+    if (!over) {
+      console.log('ドラッグキャンセル: オーバー要素なし');
+      return;
+    }
     
     const activeId = active.id as string;
     const overId = over.id as string;
+    
+    console.log('ドラッグ終了:', { activeId, overId });
     
     // アクティブなTODOを見つける
     const activeTodo = todos.find(todo => todo.id === activeId);
@@ -141,6 +151,7 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
       try {
         if (isOverColumn && activeTodo.status !== overId) {
           // 別のカラムに移動する場合
+          console.log(`カラム間移動を確定: ${activeTodo.status} -> ${overId}`);
           await batchUpdateTodos([{
             id: activeId,
             status: overId as Todo['status']
@@ -150,6 +161,7 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
           const overTodo = todos.find(todo => todo.id === overId);
           
           if (overTodo && activeTodo.status === overTodo.status) {
+            console.log(`同じカラム内の順序変更を確定: ${activeTodo.status}`);
             // 同じステータスのアイテムだけを抽出し、順序を更新
             const sameStatusTodos = todos
               .filter(todo => todo.status === activeTodo.status)
@@ -206,11 +218,6 @@ export const KanbanBoardClient: React.FC<KanbanBoardClientProps> = ({ initialTod
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        measuring={{
-          droppable: {
-            strategy: 'always',
-          },
-        }}
         autoScroll={{
           enabled: true,
           threshold: {
